@@ -1,0 +1,8 @@
+# object files
+*/obj/
+
+# executable files
+*/bin/
+
+# doxygen files
+*/doc-html/
