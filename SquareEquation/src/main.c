@@ -14,8 +14,13 @@
  * \param [out] pc pointer to c-coefficient of square squation.
  */
 void ReadCoeff(double* pa, double* pb, double* pc) {
-	assert(pa != NULL && pb != NULL && pc != NULL);
-	assert(pa != pb && pb != pc && pc != pa);
+	assert(pa != NULL);
+	assert(pb != NULL);
+	assert(pc != NULL);
+
+	assert(pa != pb);
+	assert(pb != pc);
+	assert(pc != pa);
 
 	int nFilledArgs = 0;
 
@@ -56,7 +61,8 @@ int IsAboutZero(double x) {
  *	\return number of roots (INF_ROOTS if the equation has infinite number of roots).
  */
 int SolveLinear(double a, double b, double* px) { // ax + b = 0
-	assert(isfinite(a) && isfinite(b));
+	assert(isfinite(a));
+	assert(isfinite(b));
 	assert(px != NULL);
 
 	if(IsAboutZero(a)) {
@@ -81,8 +87,12 @@ int SolveLinear(double a, double b, double* px) { // ax + b = 0
  * \return number of roots.
  */
 int SolveSquare(double a, double b, double c, double* px1, double* px2) { // ax^2 + bx + c = 0
-	assert(isfinite(a) && isfinite(b) && isfinite(c));
-	assert(px1 != NULL && px2 != NULL);
+	assert(isfinite(a));
+	assert(isfinite(b));
+	assert(isfinite(c));
+
+	assert(px1 != NULL);
+	assert(px2 != NULL);
 	assert(px1 != px2);
 
 	if(IsAboutZero(a)) {
