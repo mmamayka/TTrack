@@ -1,5 +1,5 @@
 LDFLAGS := -lm
-CFLAGS  :=
+CFLAGS  := -D TESTS
 
 DOCPATH := doc-html
 OBJPATH := obj
@@ -8,13 +8,26 @@ BINPATH := bin
 
 BINNAME := squaresolver.out
 
-SRCLISTSNAME := list
+all: $(BINPATH)/$(BINNAME)
 
-$(OBJPATH)/$(SRCLISTSNAME): magic
-	echo "CLIST := $$(find . -name '*.c' | sed -e 's/^/\t/g' -e 's/$$/ \\/g')" > $@
-	echo "HLIST := $$(find . -name '*.h' | sed -e 's/^/\t/g' -e 's/$$/ \\/g')" >> $@
+clean:
+	-rm -f $(OBJPATH)/*
+	-rm -f $(BINPATH)/*
 
-include $(PBJPATH/$(SRCLISTNAME)
+$(OBJPATH)/%.o: $(SRCPATH)/%.c
+	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(CLIST): $(OBJPATH)/%.d: $(RCPATH)/%.c:
-	touch $@
+_CFILES := $(wildcard $(SRCPATH)/*.c)
+_OFILES := $(patsubst $(SRCPATH)/%.c, $(OBJPATH)/%.o, $(_CFILES))
+_DFILES := $(patsubst $(SRCPATH)/%.c, $(OBJPATH)/%.d, $(_CFILES))
+
+include $(_DFILES)
+
+$(OBJPATH)/%.d: $(SRCPATH)/%.c
+	gcc -MM $< | sed 's/.*:/$(OBJPATH)\/$*.o $(OBJPATH)\/$*.d:/g' > $@
+
+$(BINPATH)/$(BINNAME): $(_OFILES)
+	$(CC) -o $@ $^ $(LDFLAGS)
+
+.PHONY: all clean
+
