@@ -1,5 +1,7 @@
 # object files
 */obj/
+*.d
+*.o
 
 # executable files
 */bin/
