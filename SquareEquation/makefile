@@ -6,7 +6,7 @@ OBJPATH := obj
 SRCPATH := src
 BINPATH := bin
 
-BINNAME := squaresolver.out
+BINNAME := squaresolver
 DOXCONF := doxygen
 
 all: build doc
@@ -16,8 +16,8 @@ build: $(BINPATH)/$(BINNAME)
 doc: $(DOCPATH)
 
 clean:
-	-rm -rf $(OBJPATH)
-	-rm -rf $(BINPATH)
+	-rm -rf $(OBJPATH)/*
+	-rm -rf $(BINPATH)/*
 	-rm -rf $(DOCPATH)
 
 
@@ -28,23 +28,17 @@ _DFILES := $(patsubst $(SRCPATH)/%.c, $(OBJPATH)/%.d, $(_CFILES))
 
 include $(_DFILES)
 
-$(OBJPATH):
-	mkdir $(OBJPATH)
-
-$(BINPATH):
-	mkdir $(BINPATH)
-
 $(DOCPATH): $(_CFILES) $(_HFILES)
 	doxygen $(DOXCONF)
 
-$(OBJPATH)/%.o: $(SRCPATH)/%.c $(OBJPATH)
+$(OBJPATH)/%.o: $(SRCPATH)/%.c
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(OBJPATH)/%.d: $(SRCPATH)/%.c $(OBJPATH)
+$(OBJPATH)/%.d: $(SRCPATH)/%.c
 	gcc -MM $< | sed 's/.*:/$(OBJPATH)\/$*.o $(OBJPATH)\/$*.d:/g' > $@
 
-$(BINPATH)/$(BINNAME): $(_OFILES) $(BINPATH)
-	$(CC) -o $@ $(_OFILES) $(LDFLAGS)
+$(BINPATH)/$(BINNAME): $(_OFILES)
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 .PHONY: all clean doc build
 

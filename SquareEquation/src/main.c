@@ -36,11 +36,14 @@ void ReadCoeff(double* pa, double* pb, double* pc, double* eps) {
 
 	for(;;) {
 		printf("Enter a, b, c, eps: ");
-		nFilledArgs = scanf("%lf %lf %lf", pa, pb, pc, eps);
+		nFilledArgs = scanf("%lf%lf%lf%lf", pa, pb, pc, eps);
 
-		if(nFilledArgs == 3) {
+		if(nFilledArgs == 4) {
 			break;
 		}
+
+		// scanf("%*[^\n]");
+		fflush(stdin);
 
 		printf("Damn, dude! How could you fail this?!\n");
 	}
