@@ -62,11 +62,32 @@ char* const ReadText(FILE* const file, size_t* const psize, RT_err_t* errc);
 
 /// Error codes for ReadFile() function
 typedef enum {
-	RF_OK 	  = 0, 	 ///< Terminated successfully.
+	RF_OK 	  	= 0, ///< Terminated successfully.
 	RF_NOTFOUND = 1, ///< File not found.
 	RF_MEMORY 	= 2, ///< Out of memory (malloc returned NULL).
 	RF_STDIO 	= 3, ///< stdio error. See ferror().
 } RF_err_t;
+
+
+char const * const RFErrStr(RF_err_t const errc) {
+	switch(errc) {
+		case RF_NOTFOUND:
+			return "file not found";
+			break;
+
+		case RF_MEMORY:
+			return "out of memory";
+			break;
+
+		case RF_STDIO:
+			return "internal IO error";
+			break;
+
+		default:
+			return "unknown error";
+			break;
+		}
+}
 
 /**
  * \brief Reads whole data from the file to array places in the heap.
@@ -81,6 +102,16 @@ typedef enum {
  */
 char* const ReadFile(char const* const fname, size_t* const psize, RF_err_t* const errc);
 
+/**
+ * \brief Splits text on array of separate lines.
+ *
+ * \param[in] text the text to be processed
+ * \param[in] size size of the text in bytes
+ * \param[out] pnlines number of lines. Unmodified if the function failed
+ * \return pointer to the lines or NULL if malloc() failed.
+ *
+ * \warning You have to call free() for the return value.
+ */
 string_t* const MakeLines(char* const text, size_t const size, size_t* pnlines);
 
 /**
@@ -108,6 +139,14 @@ size_t const SplitText(char* const text, size_t const size, string_t* const line
 // TODO:
 void Test_SplitText();
 
+/**
+ * \brief Compares strings ingoring nonalpha symbols. Comparator for qsort() function.
+ *
+ * \param[in] vs1 pointer to the first string
+ * \param[in] vs2 pointer to the second string
+ * \return -1 if the second string is greater than the first string, 0 if strings
+ * 		are equal, 1 otherwise
+ */
 int Comparator(void const* vs1, void const* vs2);
 void Test_Comparator();
 
@@ -119,44 +158,11 @@ int const WriteLines(FILE* const stream, string_t const * const lines,
 					   size_t const nlines);
 
 int const WriteFileLines(char const* fname, string_t const * const lines,
-					size_t const nlines) {
-	FILE* file = fopen(fname, "wb");
-	if(file == NULL)
-		return 0;
+					size_t const nlines);
 
-	int errc = WriteLines(file, lines, nlines);
+void RepairText(char* const text, size_t const size);
 
-	fclose(file);
-
-	if(errc == 0)
-		return 0;
-
-	return 1;
-}
-
-void RepairText(char* const text, size_t const size) {
-	assert(text != NULL);
-
-	for(char* ch = text; ch < text + size; ++ch) {
-		if(*ch == '\0')
-			*ch = '\n';
-	}
-}
-
-int const WriteFile(char* const filename, char* const text, size_t const size) {
-	assert(filename != NULL);
-	assert(text != NULL);
-
-	FILE* file = fopen(filename, "wb");
-	if(file == NULL)
-		return 0;
-
-	size_t written = fwrite(text, sizeof(char), size, file);
-
-	fclose(file);
-
-	return written == size;
-}
+int const WriteFile(char* const filename, char* const text, size_t const size);
 
 int main() {
 #ifdef TESTS
@@ -176,16 +182,8 @@ int main() {
 			ERR("file \'%s\' not found", filename);
 			break;
 
-		case RF_MEMORY:
-			ERR("out of memory");
-			break;
-
-		case RF_STDIO:
-			ERR("internal IO error");
-			break;
-
 		default:
-			ERR("unknown error");
+			ERR(RFErrStr(rf_err));
 			break;
 		}
 	}
@@ -303,8 +301,8 @@ size_t const SplitText(char* const text, size_t const size, string_t* const line
 // TODO:
 void Test_SplitText() 
 {
-	char const* const TEST_TEXT = "HELLO\nDUDE\nSPLIT\nME\nPLEASE\n\n";
-	size_t NUMLINES = 7;
+	//char const* const TEST_TEXT = "HELLO\nDUDE\nSPLIT\nME\nPLEASE\n\n";
+	//size_t NUMLINES = 7;
 }
 
 char* const ReadText(FILE* const file, size_t* const psize, RT_err_t* errc)
@@ -513,4 +511,47 @@ char* const ReadFile(char const* const fname, size_t* const psize, RF_err_t* con
 	*psize = size;
 	if(errc != NULL) { *errc = RF_OK; }
 	return text;
+}
+
+int const WriteFileLines(char const* fname, string_t const * const lines,
+					size_t const nlines) 
+{
+	FILE* file = fopen(fname, "wb");
+	if(file == NULL)
+		return 0;
+
+	int errc = WriteLines(file, lines, nlines);
+
+	fclose(file);
+
+	if(errc == 0)
+		return 0;
+
+	return 1;
+}
+
+void RepairText(char* const text, size_t const size) 
+{
+	assert(text != NULL);
+
+	for(char* ch = text; ch < text + size; ++ch) {
+		if(*ch == '\0')
+			*ch = '\n';
+	}
+}
+
+int const WriteFile(char* const filename, char* const text, size_t const size) 
+{
+	assert(filename != NULL);
+	assert(text != NULL);
+
+	FILE* file = fopen(filename, "wb");
+	if(file == NULL)
+		return 0;
+
+	size_t written = fwrite(text, sizeof(char), size, file);
+
+	fclose(file);
+
+	return written == size;
 }
