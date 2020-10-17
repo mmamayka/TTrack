@@ -1,10 +1,10 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "stack.h"
 #include "hash.h"
 
-#define min(x, y) ((x) < (y) ? (x) : (y))
 
 static stack_err_t const stack_resize(stack_t* const stack, size_t const new_capacity);
 
@@ -12,26 +12,33 @@ static stack_err_t const stack_resize(stack_t* const stack, size_t const new_cap
 static size_t const stack_canaries_size();
 static stack_canary_t const stack_data_lcanval(stack_t const* const stack);
 static stack_canary_t const stack_data_rcanval(stack_t const* const stack);
+static int const stack_check_data_canaries(stack_t const* const stack);
 #endif /* STACK_CANARY_PROTECTION */
 
-#if defined STACK_REINIT_PROTECTION_HASH || defined STACK_HASH_PROTECTION
+#ifdef STACK__HASH_BODY
 static stack_hash_t const stack_hash_body(stack_t const* const stack);
 static void stack_update_body_hash(stack_t* const stack);
-#endif
+#endif /* STACK__HASH_BODY */
 
-#ifdef STACK_HASH_PROTECTION
+#ifdef STACK__HASH_DATA
 static stack_hash_t const stack_hash_data(stack_t const* const stack);
 static void stack_update_data_hash(stack_t* const stack);
+#endif /* STACK__HASH_DATA */
+
+#ifdef STACK__HASH
+static void stack_update_hash(stack_t* const stack);
+static int const stack_check_hash(stack_t const* const stack);
+#endif
+
+#ifdef STACK__REINIT
+static int const stack_check_reinit_prob(stack_t const* const stack);
 #endif
 
 stack_err_t const stack_init_(stack_t* const stack, size_t const capacity) {
 	assert(stack != NULL);
-#ifdef STACK_REINIT_PROTECTION_THIS_PTR
-	assert(stack->this != stack);
-#endif
 
-#ifdef STACK_REINIT_PROTECTION_HASH
-	assert(stack->body_hash != stack_hash_body(stack));
+#ifdef STACK__REINIT
+	assert(stack_check_reinit_prob(stack));
 #endif
 
 #ifdef STACK_CANARY_PROTECTION
@@ -47,13 +54,9 @@ stack_err_t const stack_init_(stack_t* const stack, size_t const capacity) {
 	stack->capacity = 0;
 	stack->data = NULL;
 
-#if defined STACK_HASH_PROTECTION
-	stack_update_data_hash(stack);
-#endif
-
-#if defined STACK_REINIT_PROTECTION_HASH || defined STACK_HASH_PROTECTION
-	stack_update_body_hash(stack);
-#endif
+#ifdef STACK__HASH
+	stack_update_hash(stack);
+#endif /* STACK__HASH */
 
 	if(capacity != 0) {
 		stack_err_t err = stack_resize(stack, capacity);
@@ -64,20 +67,16 @@ stack_err_t const stack_init_(stack_t* const stack, size_t const capacity) {
 		stack->data = NULL;
 	}
 
-
-#ifdef STACK_HASH_PROTECTION
-	stack_update_data_hash(stack);
-#endif
-
-#if defined STACK_REINIT_PROTECTION_HASH || defined STACK_HASH_PROTECTION
-	stack_update_body_hash(stack);
-#endif /* STACK_REINIT_PROTECTION_HASH || STACK_HASH_PROTECTION */
+#ifdef STACK__HASH
+	stack_update_hash(stack);
+#endif /* STACK__HASH */
 
 	stack_assert(stack);
 
 	return STACK_ERR_OK;
 }
 
+// TODO: order of copy/init
 #ifdef STACK_INIT_CONTEXT
 stack_err_t const stack_init_ex_(stack_t* const stack, size_t const capacity,
 								 char const* const varname, char const* const funcname,
@@ -95,10 +94,9 @@ stack_err_t const stack_init_ex_(stack_t* const stack, size_t const capacity,
 		return err;
 	}
 
-
-#if defined STACK_REINIT_PROTECTION_HASH || defined STACK_HASH_PROTECTION
-	stack_update_body_hash(stack);
-#endif
+#ifdef STACK__HASH
+	stack_update_hash(stack);
+#endif /* STACK__HASH */
 
 	stack_assert(stack);
 
@@ -148,15 +146,12 @@ static stack_err_t const stack_resize(stack_t* const stack, size_t const new_cap
 #else  /* STACK_CANARY_PROTECTION */
 	stack->data = new_data;
 #endif /* STACK_CANARY_PROTECTION */
+
 	stack->capacity = new_capacity;
 
-#if defined STACK_HASH_PROTECTION
-	stack_update_data_hash(stack);
-#endif
-
-#if defined STACK_REINIT_PROTECTION_HASH || defined STACK_HASH_PROTECTION
-	stack_update_body_hash(stack);
-#endif
+#ifdef STACK__HASH
+	stack_update_hash(stack);
+#endif /* STACK__HASH */
 
 	stack_assert(stack);
 
@@ -181,13 +176,9 @@ stack_err_t const stack_push(stack_t* const stack, stack_data_t const value) {
 	*(stack_data_t*)(stack->data + stack->size * sizeof(stack_data_t)) = value;
 	++stack->size;
 
-#ifdef STACK_HASH_PROTECTION
-	stack_update_data_hash(stack);
-#endif
-
-#if defined STACK_REINIT_PROTECTION_HASH || defined STACK_HASH_PROTECTION
-	stack_update_body_hash(stack);
-#endif
+#ifdef STACK__HASH
+	stack_update_hash(stack);
+#endif /* STACK__HASH */
 
 	stack_assert(stack);
 
@@ -205,13 +196,9 @@ stack_err_t const stack_pop(stack_t* const stack, stack_data_t* const pvalue) {
 	--stack->size;
 	*pvalue = *(stack_data_t*)(stack->data + stack->size * sizeof(stack_data_t));
 
-#ifdef STACK_HASH_PROTECTION
-	stack_update_data_hash(stack);
-#endif
-
-#if defined STACK_REINIT_PROTECTION_HASH || defined STACK_HASH_PROTECTION
-	stack_update_body_hash(stack);
-#endif
+#ifdef STACK__HASH
+	stack_update_hash(stack);
+#endif /* STACK__HASH */
 
 	stack_assert(stack);
 
@@ -219,51 +206,27 @@ stack_err_t const stack_pop(stack_t* const stack, stack_data_t* const pvalue) {
 }
 
 char const* const stack_errstr(stack_err_t const err) {
-	switch(err) {
-	case STACK_ERR_OK:
-		return "ok";
-		break;
+	static char const* const TABLE[] = {
+		"ok",
+		"out of memory",
+		"underflow",
+		"canary is dead =(((",
+		"invalid hash",
+		"reinit probability",
+		"stack is null",
+		"invalid argument",
+		"invalid state"
+	};
 
-	case STACK_ERR_MEM:
-		return "out of memory";
-		break;
-
-	case STACK_ERR_UNDERFLOW:
-		return "underflow";
-		break;
-
-	case STACK_ERR_CANARY:
-		return "canary is dead =(((";
-		break;
-
-	case STACK_ERR_HASH:
-		return "invalid hash";
-		break;
-
-	case STACK_ERR_REINIT:
-		return "reinit probability";
-		break;
-
-	case STACK_ERR_NULL:
-		return "stack is null";
-		break;
-
-	case STACK_ERR_ARGUMENT:
-		return "invalid argument";
-
-	case STACK_ERR_STATE:
-		return "invalid state";
-		break;
-
-	default:
-		return "unknown";
-		break;
+	if(err >= 0 && err < sizeof(TABLE) / sizeof(stack_err_t)) {
+		return TABLE[err];
 	}
+	return "unknown";
 }
 
 
 
-#if defined STACK_REINIT_PROTECTION_HASH || defined STACK_HASH_PROTECTION
+#ifdef STACK__HASH_BODY
 static stack_hash_t const stack_hash_body(stack_t const* const stack) {
 	assert(stack != NULL);
 
@@ -285,7 +248,7 @@ static void stack_update_body_hash(stack_t* const stack) {
 }
 #endif
 
-#ifdef STACK_HASH_PROTECTION
+#ifdef STACK__HASH_DATA
 static stack_hash_t const stack_hash_data(stack_t const* const stack) {
 	assert(stack != NULL);
 
@@ -296,7 +259,7 @@ static stack_hash_t const stack_hash_data(stack_t const* const stack) {
 	return gnu_hash(stack->data - stack_canaries_size(),
 			stack->capacity * sizeof(stack_data_t) + stack_canaries_size() * 2);
 #	else /* STACK_CANARY_PROTECTION */
-	return gnu_hash(stack->data, stack->capacity() * sizeof(stack_data_t));
+	return gnu_hash(stack->data, stack->capacity * sizeof(stack_data_t));
 #	endif /* STACK_CANARY_PROTECTION */
 }
 
@@ -318,20 +281,32 @@ stack_err_t const stack_check(stack_t const* const stack) {
 
 #ifdef STACK_CANARY_PROTECTION
 	if(stack->lcanary != STACK_LCANARY_VAL || stack->rcanary != STACK_RCANARY_VAL ||
-	   stack_data_lcanval(stack) != STACK_LCANARY_VAL ||
-	   stack_data_rcanval(stack) != STACK_RCANARY_VAL) {
+	   !stack_check_data_canaries(stack)) {
 		return STACK_ERR_CANARY;
 	}
 #endif
 
-#ifdef STACK_HASH_PROTECTION
-	if(stack->body_hash != stack_hash_body(stack) ||
-	   stack->data_hash != stack_hash_data(stack)) {
+#ifdef STACK__HASH
+	if(!stack_check_hash(stack)) {
 		return STACK_ERR_HASH;
 	}
 #endif
 
 	return STACK_ERR_OK;
+}
+
+void stack__dump_value(stack_data_t const* const value, FILE* const stream) {
+	assert(value != NULL);
+	assert(stream != NULL);
+	assert(ferror(stream) == 0);
+
+#if defined STACK_DATA_PRINTF_SEQ
+	fprintf(stream, STACK_DATA_PRINTF_SEQ, *value);
+#elif defined STACK_DATA_PRINTF_FUNC
+	STACK_DATA_PRINTF_FUNC(value, stream);
+#else
+#	error "stack data value print method is undefined"
+#endif
 }
 
 void stack__dump(stack_t const* const stack, FILE* stream, char const* const varname,
@@ -341,33 +316,36 @@ void stack__dump(stack_t const* const stack, FILE* stream, char const* const var
 	assert(varname != NULL);
 	assert(filename != NULL);
 
-	fprintf(stream, "stack_t [%p] dump\n", stack);
-
 	stack_err_t err = stack_check(stack);
-	fprintf(stream, "reason: error %i (%s)\n", err, stack_errstr(err));
-
+	fprintf(stream, "stack_t [%p] dump, ", stack);
+	fprintf(stream, "reason: error %i (%s), ", err, stack_errstr(err));
 	fprintf(stream, "called at %s (%s %zu);\n", varname, filename, nline);
 
 	if(stack != NULL) {
 #ifdef STACK_INIT_CONTEXT
-		fprintf(stream, "name is \"%s\";\n created at %s (%s %zu);\n",
+		fprintf(stream, "name is \"%s\" created at %s (%s %zu);\n",
 				stack->varname, stack->funcname, stack->filename, stack->nline);
 #endif
 
 		fprintf(stream, "{\n");
 
 #ifdef STACK_CANARY_PROTECTION
-		fprintf(stream, "\tlcanary = %zu (reference value is %zu)\n", stack->lcanary,
-			STACK_LCANARY_VAL);
+		fprintf(stream, "\t" STACK__CANARY_PRINTF_FMT, stack->lcanary, STACK_LCANARY_VAL);
 #endif
 
 #ifdef STACK_REINIT_PROTECTION_THIS_PTR
 		fprintf(stream, "\tthis = %p (reference value is %p)\n", stack->this, stack);
 #endif
 
-#if defined STACK_REINIT_PROTECTION_HASH || defined STACK_HASH_PROTECTION
-		fprintf(stream, "\thash = %zu (reference value is %zu)\n", stack->body_hash,
-			stack_hash_body(stack));
+#ifdef STACK_INIT_CONTEXT
+		fprintf(stream, "\tvarname = \"%s\"\n", stack->varname);
+		fprintf(stream, "\tfuncname = \"%s\"\n", stack->funcname);
+		fprintf(stream, "\tnline = %zu\n", stack->nline);
+#endif
+
+#ifdef STACK__HASH_BODY
+		fprintf(stream, "\t" STACK__HASH_PRINTF_FMT,
+			   	stack->body_hash, stack_hash_body(stack));
 #endif
 
 		fprintf(stream, "\tsize = %zu\n", stack->size);
@@ -376,22 +354,24 @@ void stack__dump(stack_t const* const stack, FILE* stream, char const* const var
 
 		if(stack->data != NULL) {
 #ifdef STACK_CANARY_PROTECTION
-			fprintf(stream, "\t\tlcanary = %zx (reference value is %zx)\n",
-				stack_data_lcanval(stack), STACK_LCANARY_VAL);
+			fprintf(stream, "\t\t" STACK__CANARY_PRINTF_FMT, 
+					stack_data_lcanval(stack), STACK_LCANARY_VAL);
 #endif
 
-#ifdef STACK_HASH_PROTECTION
-			fprintf(stream, "\t\thash = %zx (reference value is %zx)\n", stack->data_hash,
-				stack_hash_data(stack));
+#ifdef STACK__HASH_DATA
+			fprintf(stream, "\t\t" STACK__HASH_PRINTF_FMT,
+				   	stack->data_hash, stack_hash_data(stack));
 #endif
 
 			for(size_t i = 0; i < stack->capacity; ++i) {
-				fprintf(stream, "\t\t%c[%zu] = %i\n", i < stack->size ? '*' : ' ', i, 
-					*(stack_data_t*)(stack->data + i * sizeof(stack_data_t)));
+				fprintf(stream, "\t\t%c[%zu] = ", i < stack->size ? '*' : ' ', i);
+				stack__dump_value(
+					(stack_data_t*)(stack->data + i * sizeof(stack_data_t)), stream);
+				fputc((int)'\n', stream);
 			}
 
 #ifdef STACK_CANARY_PROTECTION
-			fprintf(stream, "\t\trcanary = %zx (reference value is %zx)\n",
+			fprintf(stream, "\t\t" STACK__CANARY_PRINTF_FMT,
 				stack_data_rcanval(stack), STACK_RCANARY_VAL);
 #endif
 		}
@@ -399,8 +379,8 @@ void stack__dump(stack_t const* const stack, FILE* stream, char const* const var
 		fprintf(stream, "\t}\n");
 
 #ifdef STACK_CANARY_PROTECTION
-		fprintf(stream, "\trcanary = %zu (reference value is %zu)\n", stack->rcanary,
-			STACK_RCANARY_VAL);
+		fprintf(stream, "\t" STACK__CANARY_PRINTF_FMT,
+				stack->rcanary, STACK_RCANARY_VAL);
 #endif
 		
 	}
@@ -452,4 +432,57 @@ static stack_canary_t const stack_data_rcanval(stack_t const* const stack) {
 		stack_canaries_size() - sizeof(stack_canary_t));
 }
 
+static int const stack_check_data_canaries(stack_t const* const stack) {
+	assert(stack != NULL);
+	
+	return stack_data_lcanval(stack) == STACK_LCANARY_VAL &&
+		stack_data_rcanval(stack) == STACK_RCANARY_VAL;
+}
+
+#endif
+
+#ifdef STACK__HASH
+static void stack_update_hash(stack_t* const stack) {
+	assert(stack != NULL);
+
+#ifdef STACK__HASH_DATA
+	stack_update_data_hash(stack);
+#endif /* STACK__HASH_DATA */
+
+#ifdef STACK__HASH_BODY
+	stack_update_body_hash(stack);
+#endif /* STACK_HASH_BODY */
+}
+
+static int const stack_check_hash(stack_t const* const stack) {
+	assert(stack != NULL);
+
+	int valid = 1;
+
+#ifdef STACK__HASH_DATA
+	valid = valid && (stack_hash_data(stack) == stack->data_hash);
+#endif
+
+#ifdef STACK__HASH_BODY
+	valid = valid && (stack_hash_body(stack) == stack->body_hash);
+#endif
+
+	return valid;
+}
+#endif
+
+#ifdef STACK__REINIT
+static int const stack_check_reinit_prob(stack_t const* const stack) {
+	assert(stack != NULL);
+	int valid = 1;
+#ifdef STACK_REINIT_PROTECTION_THIS_PTR
+	valid = valid && (stack->this != stack);
+#endif /* STACK_REINIT_PROTECTION_THIS_PTR */
+
+#ifdef STACK_REINIT_PROTECTION_HASH
+	valid = valid && (stack->body_hash != stack_hash_body(stack));
+#endif /* STACK_REINIT_PROTECTION_HASH */
+
+	return valid;
+}
 #endif

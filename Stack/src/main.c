@@ -2,15 +2,11 @@
 #include <stdlib.h>
 #include <assert.h>
 
-/*
-#define STACK_CANARY_PROTECTION
-#define STACK_REINIT_PROTECTION_THIS_PTR
-#define STACK_REINIT_PROTECTION_HASH
-#define STACK_HASH_PROTECTION
-#define STACK_INIT_CONTEXT
-*/
-
 #include "stack.h"
+
+void f(int x) {
+	(void)x;
+}
 
 int main() {
 	stack_t stack;
@@ -19,6 +15,10 @@ int main() {
 	stack_push(&stack, 10);
 	stack_push(&stack, 15);
 	stack_push(&stack, 20);
+
+	stack_dump(&stack, stdout);
+
+	f(5);
 
 	for(int i = 0; i < 4; ++i) {
 		int v = 0;

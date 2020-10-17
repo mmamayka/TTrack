@@ -12,22 +12,60 @@
 
 #endif /* __GNUC__ */
 
+#if defined STACK_HASH_PROTECTION || defined STACK_REINIT_PROTECTION_HASH
+#	define STACK__HASH_BODY
+#endif
+
+#if defined STACK_HASH_PROTECTION
+#	define STACK__HASH_DATA
+#endif
+
+#if defined STACK__HASH_DATA || defined STACK__HASH_BODY
+#	define STACK__HASH
+#endif
+
+#if defined STACK_REINIT_PROTECTION
+#	ifndef STACK_REINIT_PROTECTION_HASH
+#		define STACK_REINIT_PROTECTION_HASH
+#	endif
+#	ifndef STACK_REINIT_PROTECTION_THIS_PTR
+#		define STACK_REINIT_PROTECTION_THIS_PTR
+#	endif
+#endif
+
+#if defined STACK_REINIT_PROTECTION_THIS_PTR || defined STACK_REINIT_PROTECTION_HASH
+#define STACK__REINIT
+#endif
 
 #define STACK_VARNAME_MAXLEN 30
 #define STACK_FUNCNAME_MAXLEN 30
 #define STACK_FILENAME_MAXLEN 30
 
+#define STACK_DATA_PRINTF_SEQ "%i"
 typedef int stack_data_t;
 
 #ifdef STACK_CANARY_PROTECTION
 
 #	define STACK_LCANARY_VAL 0xDEADBEEFDEADBABE
 #	define STACK_RCANARY_VAL 0x0BAD0C0FFE0CAFFE
+#	define STACK_CANARY_PRINTF_SEQ "%zX"
+
+#	define STACK__CANARY_PRINTF_FMT 							\
+		"canary = " STACK_CANARY_PRINTF_SEQ 					\
+		" (reference value is " STACK_CANARY_PRINTF_SEQ ")\n"
+
 typedef size_t stack_canary_t;
 
 #endif /* STACK_CANARY_PROTECTION */
 
 #if defined STACK_REINIT_PROTECTION_HASH || defined STACK_HASH_PROTECTION
+
+#	define STACK_HASH_PRINTF_SEQ "%zX"
+
+#	define STACK__HASH_PRINTF_FMT 								\
+		"hash = " STACK_HASH_PRINTF_SEQ 						\
+		" (reference value is " STACK_HASH_PRINTF_SEQ ")\n"
+
 typedef size_t stack_hash_t;
 #endif /* STACK_REIINIT_PROTECTION_HASH || STACK_HASH_PROTECTION */
 

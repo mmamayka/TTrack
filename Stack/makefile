@@ -1,10 +1,11 @@
 LDFLAGS := -lm
 CFLAGS  := \
 	-DTESTS \
-	-DSTACK_CANARY_PROTECTION -DSTACK_REINIT_PROTECTION_HASH \
+	-DSTACK_INIT_CONTEXT \
+	-DSTACK_REINIT_PROTECTION_HASH \
 	-DSTACK_REINIT_PROTECTION_THIS_PTR \
 	-DSTACK_HASH_PROTECTION \
-	-DSTACK_INIT_CONTEXT \
+	-DSTACK_CANARY_PROTECTION \
 	-Wall -Wextra
 
 DOCPATH := doc-html
@@ -12,7 +13,7 @@ OBJPATH := obj
 SRCPATH := src
 BINPATH := bin
 
-BINNAME := onegin
+BINNAME := stack
 DOXCONF := doxygen
 
 run: $(BINPATH)/$(BINNAME)
@@ -42,7 +43,7 @@ $(OBJPATH)/%.o: $(SRCPATH)/%.c
 	$(CC) -c $< -o $@ $(CFLAGS)
 
 $(OBJPATH)/%.d: $(SRCPATH)/%.c
-	gcc -MM $< | sed 's/.*:/$(OBJPATH)\/$*.o $(OBJPATH)\/$*.d:/g' > $@
+	$(CC) -MM $< | sed 's/.*:/$(OBJPATH)\/$*.o $(OBJPATH)\/$*.d:/g' > $@
 
 $(BINPATH)/$(BINNAME): $(_OFILES)
 	$(CC) -o $@ $^ $(LDFLAGS)
