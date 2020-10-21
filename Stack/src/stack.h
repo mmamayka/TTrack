@@ -4,6 +4,12 @@
 #include <stddef.h>
 #include <stdio.h>
 
+// TODO: TESTS
+// TODO: Error instead of assert
+// TODO: Abstract stack from hash algorithm
+// TODO: "template" stack
+// TODO: Clear data array before free() call on request
+
 #ifdef __GNUC__
 
 // I like to return const values from functions, but GCC doesn't.

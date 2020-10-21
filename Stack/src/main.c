@@ -31,4 +31,7 @@ int main() {
 	}
 
 	stack_free(&stack);
+
+	stack_init(&stack, 10);
+	stack_free(&stack);
 }

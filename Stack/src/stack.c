@@ -474,15 +474,18 @@ static int const stack_check_hash(stack_t const* const stack) {
 #ifdef STACK__REINIT
 static int const stack_check_reinit_prob(stack_t const* const stack) {
 	assert(stack != NULL);
-	int valid = 1;
 #ifdef STACK_REINIT_PROTECTION_THIS_PTR
-	valid = valid && (stack->this != stack);
+	if (stack->this ==stack) {
+		return 0;
+	}
 #endif /* STACK_REINIT_PROTECTION_THIS_PTR */
 
 #ifdef STACK_REINIT_PROTECTION_HASH
-	valid = valid && (stack->body_hash != stack_hash_body(stack));
+	if (stack->body_hash == stack_hash_body(stack)) {
+		return 0;
+	}
 #endif /* STACK_REINIT_PROTECTION_HASH */
 
-	return valid;
+	return 1;
 }
 #endif
