@@ -1,0 +1,11 @@
+хедер для генерации прототипов
+
+хедер для генерации определений
+
+зависят от (знач. по умолч.)
+STACK_DATA_T
+STACK_HASH_PROTECTION ()
+STACK_REINIT_PROTECTION_HASH
+STACK_REINIT_PROTECTION_THIS_PTR
+STACK_REINIT_PROTECTION
+

@@ -2,27 +2,41 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "stack.h"
+#include "log.h"
 
-void f(int x) {
-	(void)x;
-}
+#ifdef __GNUC__
+#	pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
+#define STACK_DATA_T int
+#define STACK_DATA_PRINTF_SEQ "%i"
+#include "stack.h"
+#undef STACK_DATA_T
+#undef STACK_DATA_PRINTF_SEQ
+
+#define STACK_DATA_T double
+#define STACK_DATA_PRINTF_SEQ "%lf"
+#include "stack.h"
+#undef STACK_DATA_T
+#undef STACK_DATA_PRINTF_SEQ
+
 
 int main() {
-	stack_t stack;
-	stack_init(&stack, 1);
-	
-	stack_push(&stack, 10);
-	stack_push(&stack, 15);
-	stack_push(&stack, 20);
+	logger_t l;
+	logger_init(&l, stderr, LOGGER_DEBUG, 0);
 
-	stack_dump(&stack, stdout);
+	stack_int_t stack;
+	stack_init(int, &stack, 1);
 
-	f(5);
+	stack_push(int, &stack, 10);
+	stack_push(int, &stack, 15);
+	stack_push(int, &stack, 20);
+
+	stack_dump(int, &stack, stderr);
 
 	for(int i = 0; i < 4; ++i) {
 		int v = 0;
-		if(stack_pop(&stack, &v) == STACK_ERR_UNDERFLOW) {
+		if(stack_pop(int, &stack, &v) == STACK_ERR_UNDERFLOW) {
 			printf("shit happen\n");
 		}
 		else {
@@ -30,8 +44,10 @@ int main() {
 		}
 	}
 
-	stack_free(&stack);
+	stack_free(int, &stack);
 
-	stack_init(&stack, 10);
-	stack_free(&stack);
+	stack_init(int, &stack, 10);
+	stack_free(int, &stack);
+
+	logger_free(&l);
 }
