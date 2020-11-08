@@ -1,10 +1,18 @@
 # object files
 */obj/
+*/*/obj/
 *.d
 *.o
 
 # executable files
 */bin/
+*/*/bin/
+*/lib/
+*/*/lib/
+
+# vim files
+*.vim
 
 # doxygen files
 */doc-html/
+*/*/doc-html/
