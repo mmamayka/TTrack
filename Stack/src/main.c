@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "log.h"
+#include <ttrack/log.h>
 
 #ifdef __GNUC__
 #	pragma GCC diagnostic ignored "-Wunused-function"
@@ -10,13 +10,13 @@
 
 #define STACK_DATA_T int
 #define STACK_DATA_PRINTF_SEQ "%i"
-#include "stack.h"
+#include <ttrack/stack.h>
 #undef STACK_DATA_T
 #undef STACK_DATA_PRINTF_SEQ
 
 #define STACK_DATA_T double
 #define STACK_DATA_PRINTF_SEQ "%lf"
-#include "stack.h"
+#include <ttrack/stack.h>
 #undef STACK_DATA_T
 #undef STACK_DATA_PRINTF_SEQ
 

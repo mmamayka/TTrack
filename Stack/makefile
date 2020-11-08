@@ -1,7 +1,8 @@
-LDFLAGS := -lm
+LDFLAGS := ../ttrack-lib/lib/ttrack-lib.a -lm
 CFLAGS  := \
 	-Wall -Wextra \
-	-g
+	-g \
+	-I../ttrack-lib/hdr
 
 DOCPATH := doc-html
 OBJPATH := obj
