@@ -1,9 +1,6 @@
 #ifndef COMP_H
 #define COMP_H
 
-// TODO: get rid of test functions definitions in header file. Make separate project 
-// 	  	 for tests.
-
 /**
  *	\brief Tests value on zero similarity.
  *
@@ -13,9 +10,7 @@
  *	\param [in] eps precision coefficient.
  *	\return boolean result of comparison.
  */
-int IsAboutZero(double x, double eps);
-
-void Test_IsAboutZero();
+int about_zero(double x, double eps);
 
 /**
  *	\brief Tests two values on similarity.
@@ -27,8 +22,6 @@ void Test_IsAboutZero();
  *	\param [in] eps precision coefficient.
  *	\return boolean result of comparison.
  */
-int IsAbout(double x, double y, double eps);
-
-void Test_IsAbout();
+int about(double x, double y, double eps);
 
 #endif /* COMP_H */

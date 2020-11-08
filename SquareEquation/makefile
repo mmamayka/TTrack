@@ -1,5 +1,5 @@
-LDFLAGS := -lm
-CFLAGS  := -D TESTS
+LDFLAGS := -lm ../ttrack-lib/lib/ttrack-lib.a
+CFLAGS  := -D TESTS -I../ttrack-lib/hdr
 
 DOCPATH := doc-html
 OBJPATH := obj

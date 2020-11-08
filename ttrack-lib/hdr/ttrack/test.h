@@ -1,44 +1,28 @@
-/**
- * \file
- * \brief File contains functions and macros for unit testing.
- */
-
 #ifndef TEST_H
 #define TEST_H
 
 #include <stdio.h>
 #include "comp.h"
 
-/**
- * \brief Call the function and compares return value with the reference value.
- * 		Log details to stderr if something gone wrong.
- *
- * \param[in] call complete function call
- * \param[in] ref int reference value for the function return value
- */
-#define TEST_IRV(call, ref)														\
+#define TEST_IRV_(call, ref, file, line)												\
 	do { 																				\
-		int res = call;																\
+		int res = call;																	\
 		if(res != ref)																	\
 			fprintf(stderr, "FAIL AT %s(%i): " #call " == %i, but should be %i\n", 		\
-					__FILE__, __LINE__, res, ref);										\
+					file, line, res, ref);												\
 	} while(0)
+#define TEST_IRV(call, ref) TEST_IRV_(call, ref, __FILE__, __LINE__)
 
 
-/**
- * \brief Compares the value with the reference value. Log details to stderr of 
- * 		someting gone wrong.
- *
- * 	\param[in] val the value
- * 	\param[in] ref the reference value
- *	\param[in] eps comparison accuracy
- */
-#define TEST_DV(val, ref, eps) 															\
+
+#define TEST_DV_(val, ref, eps,  file, line) 											\
 	do {																				\
-		if(!IsAbout(val, ref, eps))														\
+		if(!about(val, ref, eps))														\
 			printf("FAILT AT %s(%i): " #val " == %lf, but should be %lf\n",				\
-					__FILE__, __LINE__, val, ref);										\
+					file, line, val, ref);												\
 	} while(0)
+#define TEST_DV(val, ref, eps) \
+	TEST_DV_(val, ref, eps, __FILE__, __LINE__)
 	
 
 #endif /* TEST_H */
