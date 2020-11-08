@@ -1,8 +1,148 @@
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
+#include <ctype.h>
 #include "text.h"
 
+char const* const string_errstr(string_err_t const errc) {
+	if(errc >= STRING_NERRORS || errc < 0) {
+		return NULL;
+	}
 
+	static char const* const _TABLE[STRING_NERRORS] = {
+		"ok",
+		"invalid pointer to the first element",
+		"invalid pointer to the last element",
+		"invalid state (first > last)",
+		"string is null"
+	};
+	return _TABLE[errc];
+}
+
+string_t const string_init(char* const begin, char* const end) {
+	assert(begin != NULL);
+	assert(end != NULL);
+	assert(end >= begin);
+
+	string_t string = { begin, end };
+	return string;
+}
+string_t const string_make(char* const cstr) {
+	assert(cstr != NULL);
+	
+	string_t string = { cstr, cstr + strlen(cstr) };
+	return string;
+}
+
+size_t const string_length(string_t const* const string) {
+	string_assert(string);
+	return string->last - string->first;
+}
+
+void string_chomp(string_t* const string) {
+	string_assert(string);
+
+	while(string->first < string->last && isspace(*string->first)) {
+		++string->first;
+	}
+	while(string->last > string->first && isspace(*(string->last - 1))) {
+		--string->last;
+	}
+
+	string_assert(string);
+}
+
+size_t const string_tok(string_t const* const string, string_t* const toks, 
+						size_t const max_toks, char const sep)
+{
+	string_assert(string);
+	assert(toks != NULL);
+
+	size_t ntoks = 0;
+	char const* rover = string->first;
+	char const* ch = NULL;
+
+	do {
+		ch = memchr(rover, sep, string->last - rover);
+		if(ch != NULL) {
+			toks[ntoks].first = rover;
+			toks[ntoks].last = ch;
+			rover = ch + 1;
+		}
+		else {
+			toks[ntoks].first = rover;
+			toks[ntoks].last = string->last;
+		}
+		string_chomp(&toks[ntoks]);
+	} while(++ntoks < max_toks && ch != NULL);
+
+	return ntoks;
+}
+
+int const string_ceq(string_t const* const string, char const* const cstring) {
+	string_assert(string);
+	assert(cstring != NULL);
+
+	size_t slen = string_length(string);
+	size_t cslen = strlen(cstring);
+	if(slen != cslen)
+		return 0;
+
+	return memcmp(string->first, cstring, slen) == 0;
+}
+
+string_err_t const string_check(string_t const* const string) {
+	if(string == NULL) { return STRING_ERR_NULL; }
+	if(string->first == NULL) { return STRING_ERR_FIRST_PTR; }
+	if(string->last == NULL) { return STRING_ERR_LAST_PTR; }
+	if(string->last < string->first) { return STRING_ERR_STATE; }
+	return STRING_ERR_OK;
+}
+void string__dump(string_t const* const string, FILE* const stream, 
+				  char const* const funcname, char const* const filename,
+				  size_t const nline)
+{
+	assert(stream != NULL);
+	assert(ferror(stream) == 0);
+	assert(funcname != NULL);
+	assert(filename != NULL);
+
+	string_err_t errc = string_check(string);
+	fprintf(stream, "string_t [%p] dump from %s (%s %zu), reason: %i (%s)\n",
+			string, funcname, filename, nline, errc, string_errstr(errc));
+
+	fputs("{\n", stream);
+	if(string != NULL) {
+		fprintf(stream, "\tfirst = %p\n", string->first);
+		fprintf(stream, "\tlast = %p\n\n", string->last);
+
+		fprintf(stream, "\t[length] = %li\n", string->last - string->first);
+		fprintf(stream, "\t[data] = ");
+		if(string->first != NULL && string->last != NULL && 
+			string->first <= string->last) {
+			
+			fputc('\"', stream);
+			fwrite(string->first, sizeof(char), string->last - string->first, stream);
+			fputs("\"\n", stream);
+		}
+		else {
+			fprintf(stream, "invalid\n");
+		}
+	}
+	fputs("}\n", stream);
+}
+
+void string__assert(string_t const* const string, char const* const funcname,
+					char const* const filename, size_t const nline)
+{
+	assert(funcname != NULL);
+	assert(filename != NULL);
+
+	if(string_check(string) != STRING_ERR_OK) {
+		string__dump(string, stderr, funcname, filename, nline);
+		assert(!"invalid string");
+	}
+}
 
 size_t const fsize(FILE* const file) 
 {
@@ -21,20 +161,21 @@ size_t const fsize(FILE* const file)
 	return (size_t)size;
 }
 
-size_t const count_lines(char const * const text, size_t const size) 
+size_t const count_lines(char const * const text, size_t const size, char const sep)
 {
 	assert(text != NULL);
 
 	size_t nlines = 0;
 	for(char const* ch = text; ch < text + size; ++ch) {
-		if(*ch == '\n')
+		if(*ch == sep)
 			++nlines;
 	}
 	
-	return nlines;
+	return nlines + 1;
 }
 
-size_t const split_text(char* const text, size_t const size, string_t* const lines) 
+size_t const split_text(char const* const text, size_t const size, char const sep, 
+						string_t* const lines) 
 {
 	assert(text != NULL);
 	assert(lines != NULL);
@@ -43,11 +184,9 @@ size_t const split_text(char* const text, size_t const size, string_t* const lin
 
 	string_t* curline = lines;
 
-	char* rover = text;
-	for(char* ch = text; ch < text + size; ++ch) {
-		if(*ch == '\n') {
-			*ch = '\0';
-
+	char const* rover = text;
+	for(char const* ch = text; ch < text + size; ++ch) {
+		if(*ch == sep) {
 			curline->first = rover;
 			curline->last  = ch;
 			++curline;
@@ -56,10 +195,10 @@ size_t const split_text(char* const text, size_t const size, string_t* const lin
 		}
 	}
 
-	lines->first = rover;
-	lines->last = text + size;
+	curline->first = rover;
+	curline->last = text + size;
 
-	return curline - lines;
+	return curline - lines + 1;
 }
 
 char* const read_text(FILE* const file, size_t* const psize, RT_err_t* const errc)
@@ -110,19 +249,20 @@ int const write_lines(FILE* const file, string_t const * const lines,
 	return 1;
 }
 
-string_t* const get_text_lines(char* const text, size_t const size, size_t* const pnlines)
+string_t* const get_text_lines(char const* const text, size_t const size, char const sep, 
+							   size_t* const pnlines)
 {
 	assert(text != NULL);
 	assert(pnlines != NULL);
 
-	size_t const nlines = count_lines(text, size);
+	size_t const nlines = count_lines(text, size, sep);
 
 	string_t* lines = (string_t*)calloc(nlines, sizeof(string_t));
 	if(lines == NULL) {
 		return NULL;
 	}
 
-	size_t nlines_check = split_text(text, size, lines);
+	size_t nlines_check = split_text(text, size, sep, lines);
 	assert(nlines == nlines_check);
 
 	*pnlines = nlines;
