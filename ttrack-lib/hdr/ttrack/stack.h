@@ -55,6 +55,7 @@
 #	include <string.h>
 
 #	include "hash.h"
+#	include "dbg.h"
 
 
 // ---------- ERROR CODES ----------- //
@@ -188,9 +189,12 @@ static stack_err_t const STACK__OVERLOAD(pop) (STACK__TYPE* const stack,
 
 static stack_err_t const STACK__OVERLOAD(check) (STACK__TYPE const* const stack);
 
-static void STACK__OVERLOAD(_dump) (STACK__TYPE const* const stack, FILE* stream, 
+static void STACK__OVERLOAD(_dump) (STACK__TYPE const* const stack, FILE* const stream,
 							 char const* const varname,
 				 			 char const* const filename, size_t const nline);
+
+static void STACK__OVERLOAD(dump_body) (STACK__TYPE const* const stack);
+
 
 static void STACK__OVERLOAD(_assert)(STACK__TYPE const* const stack,
 							  char const* const funcname,

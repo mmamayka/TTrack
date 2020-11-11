@@ -1,12 +1,13 @@
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <ctype.h>
+#include "dbg.h"
 #include "text.h"
 
-char const* const string_errstr(string_err_t const errc) {
+char const* const string_errstr(string_err_t const errc)
+{$_
 	if(errc >= STRING_NERRORS || errc < 0) {
-		return NULL;
+		RETURN(NULL);
 	}
 
 	static char const* const _TABLE[STRING_NERRORS] = {
@@ -16,30 +17,34 @@ char const* const string_errstr(string_err_t const errc) {
 		"invalid state (first > last)",
 		"string is null"
 	};
-	return _TABLE[errc];
+	RETURN(_TABLE[errc]);
 }
 
-string_t const string_init(char* const begin, char* const end) {
-	assert(begin != NULL);
-	assert(end != NULL);
-	assert(end >= begin);
+string_t const string_init(char* const begin, char* const end)
+{$_
+	ASSERT(begin != NULL);
+	ASSERT(end != NULL);
+	ASSERT(end >= begin);
 
 	string_t string = { begin, end };
-	return string;
+	RETURN(string);
 }
-string_t const string_make(char* const cstr) {
-	assert(cstr != NULL);
+string_t const string_make(char* const cstr)
+{$_
+	ASSERT(cstr != NULL);
 	
 	string_t string = { cstr, cstr + strlen(cstr) };
-	return string;
+	RETURN(string);
 }
 
-size_t const string_length(string_t const* const string) {
+size_t const string_length(string_t const* const string)
+{$_
 	string_assert(string);
-	return string->last - string->first;
+	RETURN(string->last - string->first);
 }
 
-void string_chomp(string_t* const string) {
+void string_chomp(string_t* const string)
+{$_
 	string_assert(string);
 
 	while(string->first < string->last && isspace(*string->first)) {
@@ -50,13 +55,14 @@ void string_chomp(string_t* const string) {
 	}
 
 	string_assert(string);
+$$
 }
 
 size_t const string_tok(string_t const* const string, string_t* const toks, 
 						size_t const max_toks, char const sep)
-{
+{$_
 	string_assert(string);
-	assert(toks != NULL);
+	ASSERT(toks != NULL);
 
 	size_t ntoks = 0;
 	char const* rover = string->first;
@@ -76,36 +82,39 @@ size_t const string_tok(string_t const* const string, string_t* const toks,
 		string_chomp(&toks[ntoks]);
 	} while(++ntoks < max_toks && ch != NULL);
 
-	return ntoks;
+	RETURN(ntoks);
 }
 
-int const string_ceq(string_t const* const string, char const* const cstring) {
+int const string_ceq(string_t const* const string, char const* const cstring)
+{$_
 	string_assert(string);
-	assert(cstring != NULL);
+	ASSERT(cstring != NULL);
 
 	size_t slen = string_length(string);
 	size_t cslen = strlen(cstring);
 	if(slen != cslen)
-		return 0;
+		RETURN(0);
 
-	return memcmp(string->first, cstring, slen) == 0;
+	RETURN(memcmp(string->first, cstring, slen) == 0);
 }
 
-string_err_t const string_check(string_t const* const string) {
-	if(string == NULL) { return STRING_ERR_NULL; }
-	if(string->first == NULL) { return STRING_ERR_FIRST_PTR; }
-	if(string->last == NULL) { return STRING_ERR_LAST_PTR; }
-	if(string->last < string->first) { return STRING_ERR_STATE; }
-	return STRING_ERR_OK;
+string_err_t const string_check(string_t const* const string)
+{$_
+	if(string == NULL) { RETURN(STRING_ERR_NULL); }
+	if(string->first == NULL) { RETURN(STRING_ERR_FIRST_PTR); }
+	if(string->last == NULL) { RETURN(STRING_ERR_LAST_PTR); }
+	if(string->last < string->first) { RETURN(STRING_ERR_STATE); }
+	RETURN(STRING_ERR_OK);
 }
+
 void string__dump(string_t const* const string, FILE* const stream, 
 				  char const* const funcname, char const* const filename,
 				  size_t const nline)
-{
-	assert(stream != NULL);
-	assert(ferror(stream) == 0);
-	assert(funcname != NULL);
-	assert(filename != NULL);
+{$_
+	ASSERT(stream != NULL);
+	ASSERT(ferror(stream) == 0);
+	ASSERT(funcname != NULL);
+	ASSERT(filename != NULL);
 
 	string_err_t errc = string_check(string);
 	fprintf(stream, "string_t [%p] dump from %s (%s %zu), reason: %i (%s)\n",
@@ -130,24 +139,26 @@ void string__dump(string_t const* const string, FILE* const stream,
 		}
 	}
 	fputs("}\n", stream);
+$$
 }
 
 void string__assert(string_t const* const string, char const* const funcname,
 					char const* const filename, size_t const nline)
-{
-	assert(funcname != NULL);
-	assert(filename != NULL);
+{$_
+	ASSERT(funcname != NULL);
+	ASSERT(filename != NULL);
 
 	if(string_check(string) != STRING_ERR_OK) {
 		string__dump(string, stderr, funcname, filename, nline);
-		assert(!"invalid string");
+		ASSERT(!"invalid string");
 	}
+$$
 }
 
 size_t const fsize(FILE* const file) 
-{
-	assert(file != NULL);
-	assert(ferror(file) == 0);
+{$_
+	ASSERT(file != NULL);
+	ASSERT(ferror(file) == 0);
 
 	long int isize = 0;
 	size_t size = FSIZE_ERR;
@@ -158,12 +169,12 @@ size_t const fsize(FILE* const file)
 
 	rewind(file);
 
-	return (size_t)size;
+	RETURN((size_t)size);
 }
 
 size_t const count_lines(char const * const text, size_t const size, char const sep)
-{
-	assert(text != NULL);
+{$_
+	ASSERT(text != NULL);
 
 	size_t nlines = 0;
 	for(char const* ch = text; ch < text + size; ++ch) {
@@ -171,14 +182,14 @@ size_t const count_lines(char const * const text, size_t const size, char const 
 			++nlines;
 	}
 	
-	return nlines + 1;
+	RETURN(nlines + 1);
 }
 
 size_t const split_text(char const* const text, size_t const size, char const sep, 
 						string_t* const lines) 
-{
-	assert(text != NULL);
-	assert(lines != NULL);
+{$_
+	ASSERT(text != NULL);
+	ASSERT(lines != NULL);
 
 	// test: empty text
 
@@ -198,87 +209,87 @@ size_t const split_text(char const* const text, size_t const size, char const se
 	curline->first = rover;
 	curline->last = text + size;
 
-	return curline - lines + 1;
+	RETURN(curline - lines + 1);
 }
 
 char* const read_text(FILE* const file, size_t* const psize, RT_err_t* const errc)
-{
-	assert(file != NULL);
-	assert(ferror(file) == 0);
-	assert(psize != NULL); 
+{$_
+	ASSERT(file != NULL);
+	ASSERT(ferror(file) == 0);
+	ASSERT(psize != NULL); 
 
 	size_t size = fsize(file);
 	if(size == FSIZE_ERR) {
 		if(errc != NULL) { *errc = RT_IO; }
-		return NULL;
+		RETURN(NULL);
 	}
 
 	char* text = (char*)calloc(size + 1, sizeof(char));
 	if(text == NULL) {
 		if(errc != NULL) { *errc = RT_MEMORY; }
-		return NULL;
+		RETURN(NULL);
 	}
 
 	if(fread(text, sizeof(char), size, file) != size) {
 		free(text);
 		if(errc != NULL) { *errc = RT_IO; }
-		return NULL;
+		RETURN(NULL);
 	}
 
 	*psize = size;
 	if(errc != NULL) { *errc = RT_OK; }
-	return text;
+	RETURN(text);
 }
 
 int const write_lines(FILE* const file, string_t const * const lines, 
 					   size_t const nlines) 
-{
-	assert(file != NULL);
-	assert(ferror(file) == 0);
-	assert(lines != NULL);
+{$_
+	ASSERT(file != NULL);
+	ASSERT(ferror(file) == 0);
+	ASSERT(lines != NULL);
 
 	for(size_t i = 0; i < nlines; ++i) {
 		size_t size = lines[i].last - lines[i].first;
 		if(fwrite(lines[i].first, sizeof(char), size, file) != size)
-			return 0;
+			RETURN(0);
 
 		if(fputc((int)'\n', file) == EOF)
-			return 0;
+			RETURN(0);
 	}
 
-	return 1;
+	RETURN(1);
 }
 
 string_t* const get_text_lines(char const* const text, size_t const size, char const sep, 
 							   size_t* const pnlines)
-{
-	assert(text != NULL);
-	assert(pnlines != NULL);
+{$_
+	ASSERT(text != NULL);
+	ASSERT(pnlines != NULL);
 
 	size_t const nlines = count_lines(text, size, sep);
 
 	string_t* lines = (string_t*)calloc(nlines, sizeof(string_t));
 	if(lines == NULL) {
-		return NULL;
+		RETURN(NULL);
 	}
 
 	size_t nlines_check = split_text(text, size, sep, lines);
-	assert(nlines == nlines_check);
+	ASSERT(nlines == nlines_check);
 
 	*pnlines = nlines;
-	return lines;
+	RETURN(lines);
 }
 
 char* const read_text2(char const* const fname, size_t* const psize, 
 						  RF_err_t* const errc)
-{
-	assert(fname != NULL);
-	assert(psize != NULL);
+{$_
+	ASSERT(fname != NULL);
+	ASSERT(psize != NULL);
 
 	FILE* const ifile = fopen(fname, "rb");
 	if(ifile == NULL) {
 		*errc = RF_NOTFOUND;
-		return NULL;
+		RETURN(NULL);
 	}
 
 	size_t size = 0;
@@ -292,7 +303,7 @@ char* const read_text2(char const* const fname, size_t* const psize,
 		if(errc != NULL ) {
 			switch(rt_errc) {
 			case RT_OK:
-				assert(0); // imposible situation
+				ASSERT(0); // imposible situation
 				break;
 
 			case RT_IO:
@@ -303,76 +314,78 @@ char* const read_text2(char const* const fname, size_t* const psize,
 				break;
 			}
 		}	
-		return NULL;
+		RETURN(NULL);
 	}
 
 	*psize = size;
 	if(errc != NULL) { *errc = RF_OK; }
-	return text;
+	RETURN(text);
 }
 
 int const write_lines2(char const* const fname, string_t const * const lines,
 					size_t const nlines) 
-{
-	assert(fname != NULL);
-	assert(lines != NULL);
+{$_
+	ASSERT(fname != NULL);
+	ASSERT(lines != NULL);
 
 	FILE* file = fopen(fname, "wb");
 	if(file == NULL)
-		return 0;
+		RETURN(0);
 
 	int errc = write_lines(file, lines, nlines);
 
 	fclose(file);
 
 	if(errc == 0)
-		return 0;
+		RETURN(0);
 
-	return 1;
+	RETURN(1);
 }
 
 void repair_text(char* const text, size_t const size) 
-{
-	assert(text != NULL);
+{$_
+	ASSERT(text != NULL);
 
 	for(char* ch = text; ch < text + size; ++ch) {
 		if(*ch == '\0')
 			*ch = '\n';
 	}
+$$
 }
 
 int const write_text(char const* const filename, char const* const text, size_t const size)
-{
-	assert(filename != NULL);
-	assert(text != NULL);
+{$_
+	ASSERT(filename != NULL);
+	ASSERT(text != NULL);
 
 	FILE* file = fopen(filename, "wb");
 	if(file == NULL)
-		return 0;
+		RETURN(0);
 
 	size_t written = fwrite(text, sizeof(char), size, file);
 
 	fclose(file);
 
-	return written == size;
+	RETURN(written == size);
 }
 
-char const * const RF_errstr(RF_err_t const errc) {
+char const * const RF_errstr(RF_err_t const errc)
+{$_
 	switch(errc) {
 		case RF_NOTFOUND:
-			return "file not found";
+			RETURN("file not found");
 			break;
 
 		case RF_MEMORY:
-			return "out of memory";
+			RETURN("out of memory");
 			break;
 
 		case RF_STDIO:
-			return "internal IO error";
+			RETURN("internal IO error");
 			break;
 
 		default:
-			return "unknown error";
+			RETURN("unknown error");
 			break;
 		}
 }

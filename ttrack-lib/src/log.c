@@ -1,6 +1,6 @@
 #include <stdarg.h>
-#include <assert.h>
 #include "log.h"
+#include "dbg.h"
 
 #if defined LOGGER_INPUT_ASSERT
 #	define LOGGER_ON_INPUT_ASSERT(code) do { code } while(0)
@@ -44,71 +44,78 @@ static char const* const LOGGER__COLORSTR[LOGGER_NLEVELS] = {
 	LOGGER_ERROR_COLOR
 };
 
-static int const logger__validate_level(logger_level_t level) {
-	return level >= 0 && level < LOGGER_NLEVELS;
+static int const logger__validate_level(logger_level_t level)
+{$_
+	RETURN(level >= 0 && level < LOGGER_NLEVELS);
 }
-static int const logger__validate_error(logger_err_t error) {
-	return error >= 0 && error < LOGGER_NERRORS;
+static int const logger__validate_error(logger_err_t error)
+{$_
+	RETURN(error >= 0 && error < LOGGER_NERRORS);
 }
-static int const logger__validate_ignflag(int ignflag) {
-	return ignflag >= 0 && ignflag < 4;
+static int const logger__validate_ignflag(int ignflag)
+{$_
+	RETURN(ignflag >= 0 && ignflag < 4);
 }
 
-static char const* const logger__colorstr(logger_level_t level) {
+static char const* const logger__colorstr(logger_level_t level)
+{$_
 	if(logger__validate_level(level)) {
-		return LOGGER__COLORSTR[level];
+		RETURN(LOGGER__COLORSTR[level]);
 	}
 	else {
-		return "";
+		RETURN("");
 	}
 }
 
-char const* const logger_levelstr(logger_level_t const level) {
+char const* const logger_levelstr(logger_level_t const level)
+{$_
 	if(logger__validate_level(level)) {
-		return LOGGER__LEVELSTR[level];
+		RETURN(LOGGER__LEVELSTR[level]);
 	}
 	else {
 		// invalid level value
-		return NULL;
+		RETURN(NULL);
 	}
 }
-char const* const logger_errorstr(logger_err_t const error) {
+char const* const logger_errorstr(logger_err_t const error)
+{$_
 	if(logger__validate_error(error)) {
-		return LOGGER__ERRORSTR[error];
+		RETURN(LOGGER__ERRORSTR[error]);
 	}
 	else {
 		// invalid error value
-		return NULL;
+		RETURN(NULL);
 	}
 }
-char const* const logger__ignflagstr(int ignflag) {
+char const* const logger__ignflagstr(int ignflag)
+{$_
 	if(logger__validate_ignflag(ignflag)) {
-		return LOGGER__IGNFLAGSTR[ignflag];
+		RETURN(LOGGER__IGNFLAGSTR[ignflag]);
 	}
 	else {
 		// invalid ignore flag value
-		return NULL;
+		RETURN(NULL);
 	}
 }
 
 logger_err_t const logger_init(logger_t* const logger, FILE* const stream, 
 							   logger_level_t const min_level, int fclose_flag)
-{
+{$_
 	LOGGER_ON_INPUT_ASSERT(
-		assert(logger != NULL);
-		assert(stream != NULL);
-		assert(ferror(stream) == 0);
-		assert(logger__validate_level(min_level));
+		ASSERT(logger != NULL);
+		ASSERT(stream != NULL);
+		ASSERT(ferror(stream) == 0);
+		ASSERT(logger__validate_level(min_level));
 #	ifdef LOGGER_REINIT_PROTECTION
-		assert(logger->this != logger);
+		ASSERT(logger->this != logger);
 #	endif
 	);
 	LOGGER_ON_INPUT_ERROR(
-		if(logger == NULL) { return LOGGER_ERR_NULL; }
-		if(stream == NULL || ferror(stream) != 0) { return LOGGER_ERR_INVALID_STREAM; }
-		if(!logger__validate_level(min_level)) { return LOGGER_ERR_INVALID_LEVEL; }
+		if(logger == NULL) { RETURN(LOGGER_ERR_NULL); }
+		if(stream == NULL || ferror(stream) != 0) { RETURN(LOGGER_ERR_INVALID_STREAM); }
+		if(!logger__validate_level(min_level)) { RETURN(LOGGER_ERR_INVALID_LEVEL); }
 #	ifdef LOGGER_REINIT_PROTECTION
-		if(logger->this == logger) { return LOGGER_ERR_REINIT_PROBABILITY; }
+		if(logger->this == logger) { RETURN(LOGGER_ERR_REINIT_PROBABILITY); }
 #	endif
 	);
 
@@ -118,10 +125,11 @@ logger_err_t const logger_init(logger_t* const logger, FILE* const stream,
 	logger->fclose_flag = fclose_flag;
 	logger->ignore_flag = LOGGER__NO_LOG;
 
-	return LOGGER_ERR_OK;
+	RETURN(LOGGER_ERR_OK);
 }
 
-logger_err_t const logger_free(logger_t* const logger) {
+logger_err_t const logger_free(logger_t* const logger)
+{$_
 	logger_assert(logger);
 
 	if(logger->fclose_flag) {
@@ -132,72 +140,76 @@ logger_err_t const logger_free(logger_t* const logger) {
 	logger->this = NULL;
 #endif
 
-	return LOGGER_ERR_OK;
+	RETURN(LOGGER_ERR_OK);
 }
 
 logger_err_t const logger_min_level(logger_t* const logger, logger_level_t level) {
 	logger_assert(logger);
 
 	LOGGER_ON_INPUT_ASSERT(
-		assert(logger__validate_level(level));
+		ASSERT(logger__validate_level(level));
 	);
 	LOGGER_ON_INPUT_ERROR(
 		if(!logger__validate_level(level)) {
-			return LOGGER_ERR_INVALID_LEVEL;
+			RETURN(LOGGER_ERR_INVALID_LEVEL);
 		}
 	);
 
 	logger->min_level = level;
-	return LOGGER_ERR_OK;
+	RETURN(LOGGER_ERR_OK);
 }
 
-logger_level_t const logger_get_min_level(logger_t const* const logger) {
+logger_level_t const logger_get_min_level(logger_t const* const logger)
+{$_
 	logger_assert(logger);
 
-	return logger->min_level;
+	RETURN(logger->min_level);
 }
-char const* const logger_get_min_level_str(logger_t const* const logger) {
+char const* const logger_get_min_level_str(logger_t const* const logger)
+{$_
 	logger_assert(logger);
 	
-	return logger_levelstr(logger->min_level);
+	RETURN(logger_levelstr(logger->min_level));
 }
 
-logger_err_t const logger_start(logger_t* const logger, logger_level_t const level) {
+logger_err_t const logger_start(logger_t* const logger, logger_level_t const level)
+{$_
 	logger_assert(logger);
 
 	LOGGER_ON_INPUT_ASSERT(
-		assert(logger__validate_level(level));
-		assert(logger->ignore_flag == LOGGER__NO_LOG);
+		ASSERT(logger__validate_level(level));
+		ASSERT(logger->ignore_flag == LOGGER__NO_LOG);
 	);
 	LOGGER_ON_INPUT_ERROR(
 		if(!logger__validate_level(level)) {
-			return LOGGER_ERR_INVALID_LEVEL;
+			RETURN(LOGGER_ERR_INVALID_LEVEL);
 		}
 		if(logger->ignore_flag != LOGGER__NO_LOG) {
-			return LOGGER_ERR_LOG_NOT_FINISHED;
+			RETURN(LOGGER_ERR_LOG_NOT_FINISHED);
 		}
 	);
 
 	if(level < logger->min_level) {
 		logger->ignore_flag = LOGGER__LOG_IGNORED;
-		return LOGGER_ERR_OK;
+		RETURN(LOGGER_ERR_OK);
 	}
 
 	logger->ignore_flag = LOGGER__LOG_STARTED;
 	fprintf(logger->stream, "%s[%s][%s]\n", logger__colorstr(level),
 			"", logger_levelstr(level));
 
-	return LOGGER_ERR_OK;
+	RETURN(LOGGER_ERR_OK);
 }
-logger_err_t const logger_stop(logger_t* const logger) {
+logger_err_t const logger_stop(logger_t* const logger)
+{$_
 	logger_assert(logger);
 
 	LOGGER_ON_INPUT_ASSERT(
-		assert(logger->ignflag != LOGGER__NO_LOG)
+		ASSERT(logger->ignflag != LOGGER__NO_LOG)
 	);
 	LOGGER_ON_INPUT_ERROR(
 		if(logger->ignflag == LOGGER__NO_LOG) {
-			return LOGGER_ERR_LOG_NOT_STARTED;
+			RETURN(LOGGER_ERR_LOG_NOT_STARTED);
 		}
 	);
 
@@ -205,58 +217,60 @@ logger_err_t const logger_stop(logger_t* const logger) {
 
 	fprintf(logger->stream, LOGGER_NO_COLOR);
 
-	return LOGGER_ERR_OK;
+	RETURN(LOGGER_ERR_OK);
 }
-logger_err_t const logger_printf(logger_t* const logger, char const* const format, ...) {
+logger_err_t const logger_printf(logger_t* const logger, char const* const format, ...)
+{$_
 	logger_assert(logger);
 
 	LOGGER_ON_INPUT_ASSERT(
-		assert(format != NULL);
-		assert(logger->ignore_flag != LOGGER__NO_LOG);
+		ASSERT(format != NULL);
+		ASSERT(logger->ignore_flag != LOGGER__NO_LOG);
 	);
 	LOGGER_ON_INPUT_ERROR(
 		if(format == NULL) {
-			return LOGGER_ERR_INVALID_ARGUMENT;
+			RETURN(LOGGER_ERR_INVALID_ARGUMENT);
 		}
 		if(logger->ignore_flag == LOGGER__NO_LOG) {
-			return LOGGER_ERR_LOG_NOT_STARTED;
+			RETURN(LOGGER_ERR_LOG_NOT_STARTED);
 		}
 	);
 
 	if(logger->ignore_flag == LOGGER__LOG_IGNORED)
-		return LOGGER_ERR_OK;
+		RETURN(LOGGER_ERR_OK);
 
 	va_list l;
 	va_start(l, format);
 	vfprintf(logger->stream, format, l);
 	va_end(l);
 
-	return LOGGER_ERR_OK;
+	RETURN(LOGGER_ERR_OK);
 }
 
-logger_err_t const logger_valid(logger_t const* const logger) {
+logger_err_t const logger_valid(logger_t const* const logger)
+{$_
 	if(logger == NULL) {
-		return LOGGER_ERR_NULL;
+		RETURN(LOGGER_ERR_NULL);
 	}
 	if(logger->stream == NULL) {
-		return LOGGER_ERR_INVALID_STREAM;
+		RETURN(LOGGER_ERR_INVALID_STREAM);
 	}
 	if(ferror(logger->stream) != 0) {
-		return LOGGER_ERR_STDIO;
+		RETURN(LOGGER_ERR_STDIO);
 	}
 	if(!logger__validate_level(logger->min_level)) {
-		return LOGGER_ERR_INVALID_LEVEL;
+		RETURN(LOGGER_ERR_INVALID_LEVEL);
 	}
 	if(!logger__validate_ignflag(logger->ignore_flag)) {
-		return LOGGER_ERR_INVALID_IGNORE_FLAG;
+		RETURN(LOGGER_ERR_INVALID_IGNORE_FLAG);
 	}
-	return LOGGER_ERR_OK;
+	RETURN(LOGGER_ERR_OK);
 }
 
 void logger__dump(logger_t const* const logger, FILE* const stream,
 				  char const* const funcname, char const* const filename, 
 				  size_t const nline) 
-{
+{$_
 	logger_err_t error = logger_valid(logger);
 
 	fprintf(stream, "logger_t [%p] dump from %s (%s %zu)\n",
@@ -273,13 +287,15 @@ void logger__dump(logger_t const* const logger, FILE* const stream,
 	}
 
 	fprintf(stream, "}\n");
+$$
 }
 
 void logger__assert(logger_t const* const logger, char const* const funcname,
 				   char const* const filename, size_t const nline)
-{
+{$_
 	if(logger_valid(logger) != LOGGER_ERR_OK) {
 		logger__dump(logger, stderr, funcname, filename, nline);
-		assert(!"invalid logger state");
+		ASSERT(!"invalid logger state");
 	}
+$$
 }

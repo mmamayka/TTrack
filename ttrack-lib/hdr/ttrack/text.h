@@ -13,6 +13,12 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#define stream_assert(stream) 			\
+	do {								\
+		assert(stream != NULL);			\
+		assert(ferror(stream) == 0);	\
+	} while(0)
+
 /// Function FileSize() returns this value if any error occured.
 #define FSIZE_ERR SIZE_MAX 
 

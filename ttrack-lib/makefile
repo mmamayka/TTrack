@@ -1,12 +1,14 @@
 LDFLAGS := -lm
 CFLAGS  := \
 	-Wall -Wextra \
-	-g
+	-g \
+	-DSTACKTRACE
 
 DOCPATH := doc-html
 OBJPATH := obj
 SRCPATH := src
 BINPATH := lib
+
 HDRPATH := hdr/ttrack
 
 BINNAME := ttrack-lib.a

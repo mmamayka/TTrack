@@ -37,11 +37,11 @@ static int const STACK__OVERLOAD(_check_reinit_prob) (STACK__TYPE const* const s
 
 static stack_err_t const STACK__OVERLOAD(_init) (STACK__TYPE* const stack, 
 												 size_t const capacity) 
-{
-	assert(stack != NULL);
+{$_
+	ASSERT(stack != NULL);
 
 #ifdef STACK__REINIT
-	assert(STACK__OVERLOAD(_check_reinit_prob) (stack));
+	ASSERT(STACK__OVERLOAD(_check_reinit_prob) (stack));
 #endif
 
 #ifdef STACK_CANARY_PROTECTION
@@ -63,8 +63,9 @@ static stack_err_t const STACK__OVERLOAD(_init) (STACK__TYPE* const stack,
 
 	if(capacity != 0) {
 		stack_err_t err = STACK__OVERLOAD(_resize) (stack, capacity);
-		if(err == STACK_ERR_MEM)
-			return STACK_ERR_MEM;
+		if(err == STACK_ERR_MEM) {
+			RETURN(STACK_ERR_MEM);
+		}
 	}
 	else {
 		stack->data = NULL;
@@ -76,7 +77,9 @@ static stack_err_t const STACK__OVERLOAD(_init) (STACK__TYPE* const stack,
 
 	stack_assert(STACK_DATA_T, stack);
 
-	return STACK_ERR_OK;
+	STACKTRACE_POP
+
+	RETURN(STACK_ERR_OK);
 }
 
 // TODO: order of copy/init
@@ -84,11 +87,11 @@ static stack_err_t const STACK__OVERLOAD(_init_ex) (STACK__TYPE* const stack,
 								 size_t const capacity,
 								 char const* const varname, char const* const funcname,
 								 char const* const filename, size_t const nline)
-{
+{$_
 #ifdef STACK_INIT_CONTEXT
-	assert(stack != NULL);
-	assert(varname != NULL);
-	assert(funcname != NULL);
+	ASSERT(stack != NULL);
+	ASSERT(varname != NULL);
+	ASSERT(funcname != NULL);
 
 	stack->varname = varname;
 	stack->funcname = funcname;
@@ -103,7 +106,8 @@ static stack_err_t const STACK__OVERLOAD(_init_ex) (STACK__TYPE* const stack,
 
 	stack_err_t err = STACK__OVERLOAD(_init) (stack, capacity);
 	if(err != STACK_ERR_OK) {
-		return err;
+		STACKTRACE_POP
+		RETURN(err);
 	}
 
 #ifdef STACK__HASH
@@ -112,10 +116,12 @@ static stack_err_t const STACK__OVERLOAD(_init_ex) (STACK__TYPE* const stack,
 
 	stack_assert(STACK_DATA_T, stack);
 
-	return STACK_ERR_OK;
+	STACKTRACE_POP
+
+	RETURN(STACK_ERR_OK);
 }
 
-static void STACK__OVERLOAD(free) (STACK__TYPE* const stack) {
+static void STACK__OVERLOAD(free) (STACK__TYPE* const stack) {$_
 	stack_assert(STACK_DATA_T, stack); // known memleak is better than unknown undefined behaviour
 
 	if(stack->data) {
@@ -127,12 +133,13 @@ static void STACK__OVERLOAD(free) (STACK__TYPE* const stack) {
 	}
 
 	memset(stack, 0, sizeof(STACK__TYPE));
+$$
 }
 
 static stack_err_t const STACK__OVERLOAD(_resize) (STACK__TYPE* const stack, 
 												   size_t const new_capacity) 
-{
-	assert(new_capacity >= stack->size);
+{$_
+	ASSERT(new_capacity >= stack->size);
 	stack_assert(STACK_DATA_T, stack);
 
 #ifdef STACK_CANARY_PROTECTION
@@ -147,7 +154,7 @@ static stack_err_t const STACK__OVERLOAD(_resize) (STACK__TYPE* const stack,
 	unsigned char* new_data = (unsigned char*)realloc(old_data, realloc_size);
 
 	if(new_data == NULL) {
-		return STACK_ERR_MEM;
+		RETURN(STACK_ERR_MEM);
 	}
 
 #ifdef STACK_CANARY_PROTECTION
@@ -168,19 +175,19 @@ static stack_err_t const STACK__OVERLOAD(_resize) (STACK__TYPE* const stack,
 
 	stack_assert(STACK_DATA_T, stack);
 
-	return STACK_ERR_OK;
+	RETURN(STACK_ERR_OK);
 }
 
 static stack_err_t const STACK__OVERLOAD(push) (STACK__TYPE* const stack, 
 												STACK_DATA_T const value) 
-{
+{$_
 	stack_assert(STACK_DATA_T, stack);
 
 	if(stack->size == stack->capacity) {
 		stack_err_t err = STACK__OVERLOAD(_resize) (stack, stack->capacity * 2);
 		switch(err) {
 		case STACK_ERR_MEM:
-			return STACK_ERR_MEM;
+			RETURN(STACK_ERR_MEM);
 			break;
 
 		default:
@@ -197,17 +204,17 @@ static stack_err_t const STACK__OVERLOAD(push) (STACK__TYPE* const stack,
 
 	stack_assert(STACK_DATA_T, stack);
 
-	return STACK_ERR_OK;
+	RETURN(STACK_ERR_OK);
 }
 
 static stack_err_t const STACK__OVERLOAD(pop) (STACK__TYPE* const stack, 
 										STACK_DATA_T* const pvalue) 
-{
-	assert(pvalue != NULL);
+{$_
+	ASSERT(pvalue != NULL);
 	stack_assert(STACK_DATA_T, stack);
 
 	if(stack->size == 0) {
-		return STACK_ERR_UNDERFLOW;
+		RETURN(STACK_ERR_UNDERFLOW);
 	}
 
 	--stack->size;
@@ -219,13 +226,13 @@ static stack_err_t const STACK__OVERLOAD(pop) (STACK__TYPE* const stack,
 
 	stack_assert(STACK_DATA_T, stack);
 
-	return STACK_ERR_OK;
+	RETURN(STACK_ERR_OK);
 }
 
 #ifndef STACK_IMPL_H
 #	define STACK_IMPL_H
 
-static char const* const stack_errstr(stack_err_t const err) {
+static char const* const stack_errstr(stack_err_t const err) {$_
 	static char const* const TABLE[] = {
 		"ok",
 		"out of memory",
@@ -239,9 +246,9 @@ static char const* const stack_errstr(stack_err_t const err) {
 	};
 
 	if(err >= 0 && err < sizeof(TABLE) / sizeof(stack_err_t)) {
-		return TABLE[err];
+		RETURN(TABLE[err]);
 	}
-	return "unknown";
+	RETURN("unknown");
 }
 
 #endif
@@ -250,8 +257,8 @@ static char const* const stack_errstr(stack_err_t const err) {
 
 #ifdef STACK__HASH_BODY
 static stack_hash_t const STACK__OVERLOAD(_hash_body) (STACK__TYPE const* const stack)
-{
-	assert(stack != NULL);
+{$_
+	ASSERT(stack != NULL);
 
 	STACK__TYPE * const s = (STACK__TYPE* const)stack;
 
@@ -262,70 +269,72 @@ static stack_hash_t const STACK__OVERLOAD(_hash_body) (STACK__TYPE const* const 
 
 	s->body_hash = h0;
 
-	return h;
+	RETURN(h);
 }
 
-static void STACK__OVERLOAD(_update_body_hash) (STACK__TYPE* const stack) {
-	assert(stack != NULL);
+static void STACK__OVERLOAD(_update_body_hash) (STACK__TYPE* const stack) {$_
+	ASSERT(stack != NULL);
 	stack->body_hash = STACK__OVERLOAD(_hash_body) (stack);
+$$
 }
 #endif
 
 #ifdef STACK__HASH_DATA
 static stack_hash_t const STACK__OVERLOAD(_hash_data) (STACK__TYPE const* const stack)
-{
-	assert(stack != NULL);
+{$_
+	ASSERT(stack != NULL);
 
 	if(stack->data == NULL)
-		return 0;
+		RETURN(0);
 
 #	ifdef STACK_CANARY_PROTECTION
-	return gnu_hash(stack->data - STACK__OVERLOAD(_canary_size) (),
+	RETURN(gnu_hash(stack->data - STACK__OVERLOAD(_canary_size) (),
 			stack->capacity * sizeof(STACK_DATA_T) + 
-			STACK__OVERLOAD(_canary_size) () * 2);
+			STACK__OVERLOAD(_canary_size) () * 2));
 #	else /* STACK_CANARY_PROTECTION */
-	return gnu_hash(stack->data, stack->capacity * sizeof(STACK_DATA_T));
+	RETURN(gnu_hash(stack->data, stack->capacity * sizeof(STACK_DATA_T)));
 #	endif /* STACK_CANARY_PROTECTION */
 }
 
-static void STACK__OVERLOAD(_update_data_hash) (STACK__TYPE* const stack) {
-	assert(stack != NULL);
+static void STACK__OVERLOAD(_update_data_hash) (STACK__TYPE* const stack) {$_
+	ASSERT(stack != NULL);
 	stack->data_hash = STACK__OVERLOAD(_hash_data) (stack);
+$$
 }
 #endif
 
-static stack_err_t const STACK__OVERLOAD(check) (STACK__TYPE const* const stack) {
+static stack_err_t const STACK__OVERLOAD(check) (STACK__TYPE const* const stack) {$_
 	if(stack == NULL)
-		return STACK_ERR_NULL;
+		RETURN(STACK_ERR_NULL);
 
 	if((stack->data == NULL && stack->capacity != 0) ||
 	   (stack->data != NULL && stack->capacity == 0)	||
 	   (stack->size > stack->capacity)) {
-		return STACK_ERR_STATE;
+		RETURN(STACK_ERR_STATE);
 	}
 
 #ifdef STACK_CANARY_PROTECTION
 	if(stack->lcanary != STACK_LCANARY_VAL || stack->rcanary != STACK_RCANARY_VAL ||
 	   !STACK__OVERLOAD(_check_data_canaries) (stack)) {
-		return STACK_ERR_CANARY;
+		RETURN(STACK_ERR_CANARY);
 	}
 #endif
 
 #ifdef STACK__HASH
 	if(!STACK__OVERLOAD(_check_hash) (stack)) {
-		return STACK_ERR_HASH;
+		RETURN(STACK_ERR_HASH);
 	}
 #endif
 
-	return STACK_ERR_OK;
+	RETURN(STACK_ERR_OK);
 }
 
 static void STACK__OVERLOAD(_dump_value) (STACK_DATA_T const* const value, 
 										  FILE* const stream) 
-{
-	assert(value != NULL);
-	assert(stream != NULL);
-	assert(ferror(stream) == 0);
+{$_
+	ASSERT(value != NULL);
+	ASSERT(stream != NULL);
+	ASSERT(ferror(stream) == 0);
 
 #if defined STACK_DATA_PRINTF_SEQ
 	fprintf(stream, STACK_DATA_PRINTF_SEQ, *value);
@@ -334,16 +343,17 @@ static void STACK__OVERLOAD(_dump_value) (STACK_DATA_T const* const value,
 #else
 #	error "stack data value print method is undefined"
 #endif
+$$
 }
 
 static void STACK__OVERLOAD(_dump) (STACK__TYPE const* const stack, FILE* stream, 
 							 char const* const varname,
 				 			 char const* const filename, size_t const nline) 
-{
-	assert(stream != NULL);
-	assert(ferror(stream) == 0);
-	assert(varname != NULL);
-	assert(filename != NULL);
+{$_
+	ASSERT(stream != NULL);
+	ASSERT(ferror(stream) == 0);
+	ASSERT(varname != NULL);
+	ASSERT(filename != NULL);
 
 	stack_err_t err = STACK__OVERLOAD(check) (stack);
 	fprintf(stream, STACK__TYPE_STR " [%p] dump, ", stack);
@@ -416,70 +426,72 @@ static void STACK__OVERLOAD(_dump) (STACK__TYPE const* const stack, FILE* stream
 	}
 
 	fprintf(stream, "}\n");
+$$
 }
 
 static void STACK__OVERLOAD(_assert) (STACK__TYPE const* const stack, 
 									  char const* const funcname,
 	   			   					  char const* const filename, size_t const nline) 
-{
+{$_
 	if(STACK__OVERLOAD(check) (stack) != STACK_ERR_OK) {
 		STACK__OVERLOAD(_dump) (stack, stderr, funcname, filename, nline);
-		assert(!"stack assertion failed!");
+		ASSERT(!"stack assertion failed!");
 	}
+$$
 }
 
 #ifdef STACK_CANARY_PROTECTION
-static size_t const STACK__OVERLOAD(_canary_size) () {
+static size_t const STACK__OVERLOAD(_canary_size) () {$_
 	if(sizeof(STACK_DATA_T) >= sizeof(stack_canary_t)) {
-		return sizeof(STACK_DATA_T);
+		RETURN(sizeof(STACK_DATA_T));
 	}
 	else {
 		size_t p = sizeof(stack_canary_t) / sizeof(STACK_DATA_T);
 		size_t r = sizeof(stack_canary_t) % sizeof(STACK_DATA_T);
 
 		if(r == 0)
-			return sizeof(stack_canary_t);
+			RETURN(sizeof(stack_canary_t));
 		else
-			return (p + 1) * sizeof(STACK_DATA_T);
+			RETURN((p + 1) * sizeof(STACK_DATA_T));
 	}
 }
 
 static stack_canary_t const STACK__OVERLOAD(_data_lcanval) (
 		STACK__TYPE const* const stack) 
-{
-	assert(stack != NULL);
+{$_
+	ASSERT(stack != NULL);
 
 	if(stack->data == NULL)
-		return STACK_LCANARY_VAL;
+		RETURN(STACK_LCANARY_VAL);
 
-	return *(stack_canary_t*)(stack->data - STACK__OVERLOAD(_canary_size) ());
+	RETURN(*(stack_canary_t*)(stack->data - STACK__OVERLOAD(_canary_size) ()));
 }
 
 static stack_canary_t const STACK__OVERLOAD(_data_rcanval) (
 		STACK__TYPE const* const stack) 
-{
-	assert(stack != NULL);
+{$_
+	ASSERT(stack != NULL);
 
 	if(stack->data == NULL)
-		return STACK_RCANARY_VAL;
+		RETURN(STACK_RCANARY_VAL);
 
-	return *(stack_canary_t*)(stack->data + stack->capacity * sizeof(STACK_DATA_T) +
-		STACK__OVERLOAD(_canary_size) () - sizeof(stack_canary_t));
+	RETURN(*(stack_canary_t*)(stack->data + stack->capacity * sizeof(STACK_DATA_T) +
+		STACK__OVERLOAD(_canary_size) () - sizeof(stack_canary_t)));
 }
 
 static int const STACK__OVERLOAD(_check_data_canaries) (STACK__TYPE const* const stack)
-{
-	assert(stack != NULL);
+{$_
+	ASSERT(stack != NULL);
 	
-	return STACK__OVERLOAD(_data_lcanval) (stack) == STACK_LCANARY_VAL &&
-		STACK__OVERLOAD(_data_rcanval) (stack) == STACK_RCANARY_VAL;
+	RETURN(STACK__OVERLOAD(_data_lcanval) (stack) == STACK_LCANARY_VAL &&
+		STACK__OVERLOAD(_data_rcanval) (stack) == STACK_RCANARY_VAL);
 }
 
 #endif
 
 #ifdef STACK__HASH
-static void STACK__OVERLOAD(_update_hash) (STACK__TYPE* const stack) {
-	assert(stack != NULL);
+static void STACK__OVERLOAD(_update_hash) (STACK__TYPE* const stack) {$_
+	ASSERT(stack != NULL);
 
 #ifdef STACK__HASH_DATA
 	STACK__OVERLOAD(_update_data_hash) (stack);
@@ -488,10 +500,11 @@ static void STACK__OVERLOAD(_update_hash) (STACK__TYPE* const stack) {
 #ifdef STACK__HASH_BODY
 	STACK__OVERLOAD(_update_body_hash) (stack);
 #endif /* STACK_HASH_BODY */
+$$
 }
 
-static int const STACK__OVERLOAD(_check_hash) (STACK__TYPE const* const stack) {
-	assert(stack != NULL);
+static int const STACK__OVERLOAD(_check_hash) (STACK__TYPE const* const stack) {$_
+	ASSERT(stack != NULL);
 
 	int valid = 1;
 
@@ -503,25 +516,25 @@ static int const STACK__OVERLOAD(_check_hash) (STACK__TYPE const* const stack) {
 	valid = valid && (STACK__OVERLOAD(_hash_body) (stack) == stack->body_hash);
 #endif
 
-	return valid;
+	RETURN(valid);
 }
 #endif
 
 #ifdef STACK__REINIT
-static int const STACK__OVERLOAD(_check_reinit_prob) (STACK__TYPE const* const stack) {
-	assert(stack != NULL);
+static int const STACK__OVERLOAD(_check_reinit_prob) (STACK__TYPE const* const stack) {$_
+	ASSERT(stack != NULL);
 #ifdef STACK_REINIT_PROTECTION_THIS_PTR
 	if (stack->this == stack) {
-		return 0;
+		RETURN(0);
 	}
 #endif /* STACK_REINIT_PROTECTION_THIS_PTR */
 
 #ifdef STACK_REINIT_PROTECTION_HASH
 	if (stack->body_hash == STACK__OVERLOAD(_hash_body) (stack)) {
-		return 0;
+		RETURN(0);
 	}
 #endif /* STACK_REINIT_PROTECTION_HASH */
 
-	return 1;
+	RETURN(1);
 }
 #endif

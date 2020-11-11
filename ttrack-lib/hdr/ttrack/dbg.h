@@ -1,8 +1,38 @@
-#ifndef DBG_H
-#define DBG_H
+#ifndef DEBUG_H
+#define DEBUG_H
 
-#include <stdlib.h>
+#include <assert.h>
 #include <stdio.h>
+
+#ifdef __GNUC__
+
+// I like to return const values from functions, but GCC doesn't.
+// So this line will make us up.
+#	pragma GCC diagnostic ignored "-Wignored-qualifiers"
+
+#endif /* __GNUC__ */
+
+#define ASSERT_(expr, func, file, line)													\
+	do {																				\
+		if(!(expr)) {																	\
+			fprintf(stderr, "assertion %s failed at %s (%s %zu)\n", #expr, func, file,	\
+					(size_t)line);														\
+			stacktrace_print(stderr);													\
+			assert(0);																	\
+		}																				\
+	} while(0)
+
+#define ASSERT(expr) ASSERT_(expr, __func__, __FILE__, __LINE__)
+
+#ifdef STACKTRACE
+#define RETURN(...)				\
+	do {						\
+		$$						\
+		return (__VA_ARGS__);	\
+	} while(0)
+#else
+#define RETURN(...) return (__VA_ARGS__)
+#endif
 
 /**
  * \brief Prints formated debug message.
@@ -21,7 +51,7 @@
  * 		your head up your ass. Otherwise %s and %i sequences in head_format must be 
  * 		written is THAT ORDER: %s before %i. They are hardcoded in printf.
  */
-void DebugMessage(char const* const file, int line, FILE* const stream, 
+void dbg__message(char const* const file, int line, FILE* const stream, 
 		char const* const head_format, char const* const body_format, ...);
 
 /* \def DBG(...)
@@ -42,26 +72,81 @@ void DebugMessage(char const* const file, int line, FILE* const stream,
  */
 
 #ifdef NDEBUG
-
 #	define DBG(...) 
-
-#	define ERR(...)																	\
-	do {																			\
-		DebugMessage(__FILE__, __LINE__, stderr, "ERROR: ", __VA_ARGS__);			\
-		exit(EXIT_FAILURE);															\
-	} while(0)
-
 #else
 
 #	define DBG(...) 																\
-		DebugMessage(__FILE__, __LINE__, stdout, "DEBUG %s (%i): ", __VA_ARGS__)
+		dbg__message(__FILE__, __LINE__, stdout, "DEBUG %s (%i): ", __VA_ARGS__)
+#endif
 
-#	define ERR(...) 																\
-	do {																			\
-		DebugMessage(__FILE__, __LINE__, stderr, "ERROR AT %s (%i): ", __VA_ARGS__);\
-		exit(EXIT_FAILURE);															\
+
+#define stream_assert(stream) 			\
+	do {								\
+		assert(stream != NULL);			\
+		assert(ferror(stream) == 0);	\
 	} while(0)
+
+#ifndef DUMP_BUFSIZE
+#	define DUMP_BUFSIZE (1024 * 4)
+#endif
+
+#ifndef DUMP_MAXDEPTH
+#	define DUMP_MAXDEPTH 10
+#endif
+
+#ifndef DUMP_HEX_BLOCK_SIZE
+#	define DUMP_HEX_BLOCK_SIZE 4
+#endif
+
+#ifndef DUMP_HEX_BLOCKS_IN_LINE
+#	define DUMP_HEX_BLOCKS_IN_LINE 4
+#endif
+
+
+#define DUMP_PUSHDEPTH \
+	size_t dump_depth  = DUMP_DEPTH;
+
+#define DUMP_POPDEPTH \
+	DUMP_DEPTH = dump_depth;
+
+#define DUMP_PUSHTFL \
+	size_t dump_tab_first_line = DUMP_TAB_FIRST_LINE;
+
+#define DUMP_POPTFL \
+	DUMP_TAB_FIRST_LINE = dump_tab_first_line;
+
+
+extern size_t DUMP_DEPTH;
+extern FILE*  DUMP_STREAM;
+extern int    DUMP_TAB_FIRST_LINE;
+void dump(char const* format, ...);
+void dump_hex(unsigned char const* data, size_t size);
+
+void stacktrace__push(char const* const funcname, char const* const filename, 
+					  size_t const nline);
+
+void stacktrace__pop();
+
+void stacktrace_dump_body();
+void stacktrace__dump(char const* funcname, char const* filename, size_t nline);
+
+#define stacktrace_dump() \
+	stacktrace__dump(__func__, __FILE__, __LINE__)
+
+#ifdef STACKTRACE
+#	define STACKTRACE_PUSH stacktrace__push(__func__, __FILE__, __LINE__);
+#	define STACKTRACE_POP  stacktrace__pop();
+
+#	define $_ STACKTRACE_PUSH
+#	define $$ STACKTRACE_POP
+#else
+#	define STACKTRACE_PUSH
+#	define STACKTRACE_POP
+
+#	define $_
+#	define $$
+#endif
 
 #endif
 
-#endif /* DBG_H */
+void stacktrace_print(FILE* const stream);
