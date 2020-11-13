@@ -1,8 +1,9 @@
 #include <ttrack/dbg.h>
+#include <ttrack/binbuf.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "binbuf.h"
+
 #include "parser.h"
 
 int main(int argc, char* argv[])

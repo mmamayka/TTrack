@@ -1,11 +1,11 @@
 #include <ttrack/dbg.h>
+#include <ttrack/binbuf.h>
 #include <string.h>
 #include <stdio.h>
 
 #include "parser.h"
 #include "tokenizer.h"
 #include "cmdparsers.h"
-#include "binbuf.h"
 #include "labeldic.h"
 
 static int const format_if_label(char* str) 

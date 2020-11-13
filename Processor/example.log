@@ -1,0 +1,558 @@
+register set {
+	ax = 0.000000
+	bx = 0.000000
+	cx = 0.000000
+	dx = 0.000000
+}
+stack_double_t [0x559e648e11c0] dump, reason: error 0 (ok), called at dump_state (src/main.c 43);
+{
+	size = 0
+	capacity = 4
+	data [0x559e6574f570] = {
+		 [0] = 0.000000
+		 [1] = 0.000000
+		 [2] = 0.000000
+		 [3] = 0.000000
+	}
+}
+stack_size_t_t [0x559e648e11e0] dump, reason: error 0 (ok), called at dump_state (src/main.c 44);
+{
+	size = 0
+	capacity = 4
+	data [0x559e6574f5a0] = {
+		 [0] = 94125224534687
+		 [1] = 0
+		 [2] = 430
+		 [3] = 94138795357504
+	}
+}
+
+
+
+register set {
+	ax = 0.000000
+	bx = 0.000000
+	cx = 0.000000
+	dx = 0.000000
+}
+stack_double_t [0x559e648e11c0] dump, reason: error 0 (ok), called at dump_state (src/main.c 43);
+{
+	size = 1
+	capacity = 4
+	data [0x559e6574f570] = {
+		*[0] = 1.000000
+		 [1] = 0.000000
+		 [2] = 0.000000
+		 [3] = 0.000000
+	}
+}
+stack_size_t_t [0x559e648e11e0] dump, reason: error 0 (ok), called at dump_state (src/main.c 44);
+{
+	size = 0
+	capacity = 4
+	data [0x559e6574f5a0] = {
+		 [0] = 94125224534687
+		 [1] = 0
+		 [2] = 430
+		 [3] = 94138795357504
+	}
+}
+
+
+
+register set {
+	ax = 0.000000
+	bx = 1.000000
+	cx = 0.000000
+	dx = 0.000000
+}
+stack_double_t [0x559e648e11c0] dump, reason: error 0 (ok), called at dump_state (src/main.c 43);
+{
+	size = 0
+	capacity = 4
+	data [0x559e6574f570] = {
+		 [0] = 1.000000
+		 [1] = 0.000000
+		 [2] = 0.000000
+		 [3] = 0.000000
+	}
+}
+stack_size_t_t [0x559e648e11e0] dump, reason: error 0 (ok), called at dump_state (src/main.c 44);
+{
+	size = 0
+	capacity = 4
+	data [0x559e6574f5a0] = {
+		 [0] = 94125224534687
+		 [1] = 0
+		 [2] = 430
+		 [3] = 94138795357504
+	}
+}
+
+
+
+register set {
+	ax = 0.000000
+	bx = 1.000000
+	cx = 0.000000
+	dx = 0.000000
+}
+stack_double_t [0x559e648e11c0] dump, reason: error 0 (ok), called at dump_state (src/main.c 43);
+{
+	size = 1
+	capacity = 4
+	data [0x559e6574f570] = {
+		*[0] = 1.000000
+		 [1] = 0.000000
+		 [2] = 0.000000
+		 [3] = 0.000000
+	}
+}
+stack_size_t_t [0x559e648e11e0] dump, reason: error 0 (ok), called at dump_state (src/main.c 44);
+{
+	size = 0
+	capacity = 4
+	data [0x559e6574f5a0] = {
+		 [0] = 94125224534687
+		 [1] = 0
+		 [2] = 430
+		 [3] = 94138795357504
+	}
+}
+
+
+
+register set {
+	ax = 0.000000
+	bx = 1.000000
+	cx = 0.000000
+	dx = 0.000000
+}
+stack_double_t [0x559e648e11c0] dump, reason: error 0 (ok), called at dump_state (src/main.c 43);
+{
+	size = 1
+	capacity = 4
+	data [0x559e6574f570] = {
+		*[0] = 1.000000
+		 [1] = 0.000000
+		 [2] = 0.000000
+		 [3] = 0.000000
+	}
+}
+stack_size_t_t [0x559e648e11e0] dump, reason: error 0 (ok), called at dump_state (src/main.c 44);
+{
+	size = 1
+	capacity = 4
+	data [0x559e6574f5a0] = {
+		*[0] = 16
+		 [1] = 0
+		 [2] = 430
+		 [3] = 94138795357504
+	}
+}
+
+
+
+register set {
+	ax = 1.000000
+	bx = 1.000000
+	cx = 0.000000
+	dx = 0.000000
+}
+stack_double_t [0x559e648e11c0] dump, reason: error 0 (ok), called at dump_state (src/main.c 43);
+{
+	size = 0
+	capacity = 4
+	data [0x559e6574f570] = {
+		 [0] = 1.000000
+		 [1] = 0.000000
+		 [2] = 0.000000
+		 [3] = 0.000000
+	}
+}
+stack_size_t_t [0x559e648e11e0] dump, reason: error 0 (ok), called at dump_state (src/main.c 44);
+{
+	size = 1
+	capacity = 4
+	data [0x559e6574f5a0] = {
+		*[0] = 16
+		 [1] = 0
+		 [2] = 430
+		 [3] = 94138795357504
+	}
+}
+
+
+
+register set {
+	ax = 1.000000
+	bx = 1.000000
+	cx = 0.000000
+	dx = 0.000000
+}
+stack_double_t [0x559e648e11c0] dump, reason: error 0 (ok), called at dump_state (src/main.c 43);
+{
+	size = 1
+	capacity = 4
+	data [0x559e6574f570] = {
+		*[0] = 1.000000
+		 [1] = 0.000000
+		 [2] = 0.000000
+		 [3] = 0.000000
+	}
+}
+stack_size_t_t [0x559e648e11e0] dump, reason: error 0 (ok), called at dump_state (src/main.c 44);
+{
+	size = 1
+	capacity = 4
+	data [0x559e6574f5a0] = {
+		*[0] = 16
+		 [1] = 0
+		 [2] = 430
+		 [3] = 94138795357504
+	}
+}
+
+
+
+register set {
+	ax = 1.000000
+	bx = 1.000000
+	cx = 0.000000
+	dx = 0.000000
+}
+stack_double_t [0x559e648e11c0] dump, reason: error 0 (ok), called at dump_state (src/main.c 43);
+{
+	size = 2
+	capacity = 4
+	data [0x559e6574f570] = {
+		*[0] = 1.000000
+		*[1] = 1.000000
+		 [2] = 0.000000
+		 [3] = 0.000000
+	}
+}
+stack_size_t_t [0x559e648e11e0] dump, reason: error 0 (ok), called at dump_state (src/main.c 44);
+{
+	size = 1
+	capacity = 4
+	data [0x559e6574f5a0] = {
+		*[0] = 16
+		 [1] = 0
+		 [2] = 430
+		 [3] = 94138795357504
+	}
+}
+
+
+
+register set {
+	ax = 1.000000
+	bx = 1.000000
+	cx = 0.000000
+	dx = 0.000000
+}
+stack_double_t [0x559e648e11c0] dump, reason: error 0 (ok), called at dump_state (src/main.c 43);
+{
+	size = 1
+	capacity = 4
+	data [0x559e6574f570] = {
+		*[0] = 1.000000
+		 [1] = 1.000000
+		 [2] = 0.000000
+		 [3] = 0.000000
+	}
+}
+stack_size_t_t [0x559e648e11e0] dump, reason: error 0 (ok), called at dump_state (src/main.c 44);
+{
+	size = 1
+	capacity = 4
+	data [0x559e6574f5a0] = {
+		*[0] = 16
+		 [1] = 0
+		 [2] = 430
+		 [3] = 94138795357504
+	}
+}
+
+
+
+register set {
+	ax = 1.000000
+	bx = 1.000000
+	cx = 0.000000
+	dx = 0.000000
+}
+stack_double_t [0x559e648e11c0] dump, reason: error 0 (ok), called at dump_state (src/main.c 43);
+{
+	size = 1
+	capacity = 4
+	data [0x559e6574f570] = {
+		*[0] = 1.000000
+		 [1] = 1.000000
+		 [2] = 0.000000
+		 [3] = 0.000000
+	}
+}
+stack_size_t_t [0x559e648e11e0] dump, reason: error 0 (ok), called at dump_state (src/main.c 44);
+{
+	size = 0
+	capacity = 4
+	data [0x559e6574f5a0] = {
+		 [0] = 16
+		 [1] = 0
+		 [2] = 430
+		 [3] = 94138795357504
+	}
+}
+
+
+
+register set {
+	ax = 1.000000
+	bx = 1.000000
+	cx = 0.000000
+	dx = 0.000000
+}
+stack_double_t [0x559e648e11c0] dump, reason: error 0 (ok), called at dump_state (src/main.c 43);
+{
+	size = 0
+	capacity = 4
+	data [0x559e6574f570] = {
+		 [0] = 1.000000
+		 [1] = 1.000000
+		 [2] = 0.000000
+		 [3] = 0.000000
+	}
+}
+stack_size_t_t [0x559e648e11e0] dump, reason: error 0 (ok), called at dump_state (src/main.c 44);
+{
+	size = 0
+	capacity = 4
+	data [0x559e6574f5a0] = {
+		 [0] = 16
+		 [1] = 0
+		 [2] = 430
+		 [3] = 94138795357504
+	}
+}
+
+
+
+register set {
+	ax = 1.000000
+	bx = 1.000000
+	cx = 0.000000
+	dx = 0.000000
+}
+stack_double_t [0x559e648e11c0] dump, reason: error 0 (ok), called at dump_state (src/main.c 43);
+{
+	size = 1
+	capacity = 4
+	data [0x559e6574f570] = {
+		*[0] = 1.000000
+		 [1] = 1.000000
+		 [2] = 0.000000
+		 [3] = 0.000000
+	}
+}
+stack_size_t_t [0x559e648e11e0] dump, reason: error 0 (ok), called at dump_state (src/main.c 44);
+{
+	size = 0
+	capacity = 4
+	data [0x559e6574f5a0] = {
+		 [0] = 16
+		 [1] = 0
+		 [2] = 430
+		 [3] = 94138795357504
+	}
+}
+
+
+
+register set {
+	ax = 1.000000
+	bx = 1.000000
+	cx = 0.000000
+	dx = 0.000000
+}
+stack_double_t [0x559e648e11c0] dump, reason: error 0 (ok), called at dump_state (src/main.c 43);
+{
+	size = 2
+	capacity = 4
+	data [0x559e6574f570] = {
+		*[0] = 1.000000
+		*[1] = 1.000000
+		 [2] = 0.000000
+		 [3] = 0.000000
+	}
+}
+stack_size_t_t [0x559e648e11e0] dump, reason: error 0 (ok), called at dump_state (src/main.c 44);
+{
+	size = 0
+	capacity = 4
+	data [0x559e6574f5a0] = {
+		 [0] = 16
+		 [1] = 0
+		 [2] = 430
+		 [3] = 94138795357504
+	}
+}
+
+
+
+register set {
+	ax = 1.000000
+	bx = 1.000000
+	cx = 0.000000
+	dx = 0.000000
+}
+stack_double_t [0x559e648e11c0] dump, reason: error 0 (ok), called at dump_state (src/main.c 43);
+{
+	size = 1
+	capacity = 4
+	data [0x559e6574f570] = {
+		*[0] = 2.000000
+		 [1] = 1.000000
+		 [2] = 0.000000
+		 [3] = 0.000000
+	}
+}
+stack_size_t_t [0x559e648e11e0] dump, reason: error 0 (ok), called at dump_state (src/main.c 44);
+{
+	size = 0
+	capacity = 4
+	data [0x559e6574f5a0] = {
+		 [0] = 16
+		 [1] = 0
+		 [2] = 430
+		 [3] = 94138795357504
+	}
+}
+
+
+
+register set {
+	ax = 1.000000
+	bx = 2.000000
+	cx = 0.000000
+	dx = 0.000000
+}
+stack_double_t [0x559e648e11c0] dump, reason: error 0 (ok), called at dump_state (src/main.c 43);
+{
+	size = 0
+	capacity = 4
+	data [0x559e6574f570] = {
+		 [0] = 2.000000
+		 [1] = 1.000000
+		 [2] = 0.000000
+		 [3] = 0.000000
+	}
+}
+stack_size_t_t [0x559e648e11e0] dump, reason: error 0 (ok), called at dump_state (src/main.c 44);
+{
+	size = 0
+	capacity = 4
+	data [0x559e6574f5a0] = {
+		 [0] = 16
+		 [1] = 0
+		 [2] = 430
+		 [3] = 94138795357504
+	}
+}
+
+
+
+register set {
+	ax = 1.000000
+	bx = 2.000000
+	cx = 0.000000
+	dx = 0.000000
+}
+stack_double_t [0x559e648e11c0] dump, reason: error 0 (ok), called at dump_state (src/main.c 43);
+{
+	size = 1
+	capacity = 4
+	data [0x559e6574f570] = {
+		*[0] = 2.000000
+		 [1] = 1.000000
+		 [2] = 0.000000
+		 [3] = 0.000000
+	}
+}
+stack_size_t_t [0x559e648e11e0] dump, reason: error 0 (ok), called at dump_state (src/main.c 44);
+{
+	size = 0
+	capacity = 4
+	data [0x559e6574f5a0] = {
+		 [0] = 16
+		 [1] = 0
+		 [2] = 430
+		 [3] = 94138795357504
+	}
+}
+
+
+
+register set {
+	ax = 1.000000
+	bx = 2.000000
+	cx = 0.000000
+	dx = 0.000000
+}
+stack_double_t [0x559e648e11c0] dump, reason: error 0 (ok), called at dump_state (src/main.c 43);
+{
+	size = 2
+	capacity = 4
+	data [0x559e6574f570] = {
+		*[0] = 2.000000
+		*[1] = 10.000000
+		 [2] = 0.000000
+		 [3] = 0.000000
+	}
+}
+stack_size_t_t [0x559e648e11e0] dump, reason: error 0 (ok), called at dump_state (src/main.c 44);
+{
+	size = 0
+	capacity = 4
+	data [0x559e6574f5a0] = {
+		 [0] = 16
+		 [1] = 0
+		 [2] = 430
+		 [3] = 94138795357504
+	}
+}
+
+
+
+register set {
+	ax = 1.000000
+	bx = 2.000000
+	cx = 0.000000
+	dx = 0.000000
+}
+stack_double_t [0x559e648e11c0] dump, reason: error 0 (ok), called at dump_state (src/main.c 43);
+{
+	size = 0
+	capacity = 4
+	data [0x559e6574f570] = {
+		 [0] = 2.000000
+		 [1] = 10.000000
+		 [2] = 0.000000
+		 [3] = 0.000000
+	}
+}
+stack_size_t_t [0x559e648e11e0] dump, reason: error 0 (ok), called at dump_state (src/main.c 44);
+{
+	size = 0
+	capacity = 4
+	data [0x559e6574f5a0] = {
+		 [0] = 16
+		 [1] = 0
+		 [2] = 430
+		 [3] = 94138795357504
+	}
+}
+
+
+

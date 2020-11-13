@@ -28,14 +28,6 @@ typedef struct {
 
 extern int CMD_PARSER_PEDANTIC_LABELS;
 
-typedef unsigned char regid_t;
-
-extern char const* regmap[];
-extern size_t const REGCNT;
-
-regid_t const get_regid(char const* regname);
-char const* const get_regname(regid_t regid);
-
 extern cmd_parser_t CMD_PARSERS[];
 extern size_t CMD_PARSERS_COUNT;
 

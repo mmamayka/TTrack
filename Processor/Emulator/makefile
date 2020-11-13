@@ -2,7 +2,6 @@ LDFLAGS := \
 	../../ttrack-lib/lib/ttrack-lib.a \
 	../LibCommon/lib/libcommon.a \
 	-lm
-
 CFLAGS  := \
 	-Wall -Wextra \
 	-g \
@@ -15,11 +14,11 @@ OBJPATH := obj
 SRCPATH := src
 BINPATH := bin
 
-BINNAME := assembler
+BINNAME := emulator
 DOXCONF := doxygen
 
 run: $(BINPATH)/$(BINNAME)
-	./$< example.asm example.bin
+	./$< example.bin
 
 build: $(BINPATH)/$(BINNAME)
 
