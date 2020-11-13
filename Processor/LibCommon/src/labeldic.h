@@ -16,6 +16,10 @@ typedef enum {
 labeldic_err_t const labeldic_getaddr(char const* name, size_t* addr);
 labeldic_err_t const labeldic_setaddr(char const* name, size_t addr);
 
+char const* labeldic_addrname(size_t addr);
+
+size_t const labeldic_size();
+
 labeldic_err_t const labeldic_check();
 void labeldic__dump(char const* funcname, char const* filename, size_t nline);
 void labeldic__assert(char const* funcname, char const* filename, size_t nline);

@@ -77,8 +77,6 @@ static stack_err_t const STACK__OVERLOAD(_init) (STACK__TYPE* const stack,
 
 	stack_assert(STACK_DATA_T, stack);
 
-	STACKTRACE_POP
-
 	RETURN(STACK_ERR_OK);
 }
 
@@ -106,7 +104,6 @@ static stack_err_t const STACK__OVERLOAD(_init_ex) (STACK__TYPE* const stack,
 
 	stack_err_t err = STACK__OVERLOAD(_init) (stack, capacity);
 	if(err != STACK_ERR_OK) {
-		STACKTRACE_POP
 		RETURN(err);
 	}
 
@@ -115,8 +112,6 @@ static stack_err_t const STACK__OVERLOAD(_init_ex) (STACK__TYPE* const stack,
 #endif /* STACK__HASH */
 
 	stack_assert(STACK_DATA_T, stack);
-
-	STACKTRACE_POP
 
 	RETURN(STACK_ERR_OK);
 }

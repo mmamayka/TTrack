@@ -2,12 +2,12 @@
 #include <ttrack/binbuf.h>
 #include <libcommon/opcodes.h>
 #include <libcommon/reginfo.h>
+#include <libcommon/labeldic.h>
 #include <string.h>
 #include <limits.h>
 #include <math.h>
 #include <stdlib.h>
 
-#include "labeldic.h"
 #include "cmdparsers.h"
 
 cmd_parser_err_t cmd_parser_make_err(cmd_parser_errt_t errt, char const* str, size_t pos)

@@ -24,8 +24,8 @@
 
 /// Contains pointers to first and last ('\0') line symbols.
 typedef struct {
-	char const* first; ///< pointer to the first symbol.
-	char const* last;  ///< pointer to the last symbol.
+	char * first; ///< pointer to the first symbol.
+	char * last;  ///< pointer to the last symbol.
 } string_t;
 
 typedef enum {
@@ -40,7 +40,7 @@ typedef enum {
 
 char const* const string_errstr(string_err_t const errc);
 
-string_t const string_init(char* const begin, char* const end);
+string_t const string_init(char* begin, char* end);
 string_t const string_make(char* const cstr);
 
 size_t const string_length(string_t const* const string);
@@ -137,7 +137,7 @@ char* const read_text2(char const* const fname, size_t* const psize, RF_err_t* c
  *
  * \warning You have to call free() for the return value.
  */
-string_t* const get_text_lines(char const* const text, size_t const size, char const sep, 
+string_t* const get_text_lines(char * const text, size_t const size, char const sep, 
 							   size_t* const pnlines);
 
 /**
@@ -160,8 +160,9 @@ size_t const count_lines(char const * const text, size_t const size, char const 
  *
  * \return count of lines.
  */
-size_t const split_text(char const* const text, size_t const size, char const sep,
+size_t const split_text(char * const text, size_t const size, char const sep,
 						string_t* const lines);
+
 
 /**
  * \brief Writes lines to file.

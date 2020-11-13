@@ -32,19 +32,6 @@ double regs[REGCNT];
 stack_double_t stack;
 stack_size_t_t callstack;
 
-void dump_state() {
-	dump("register set {\n");
-
-	for(regid_t i = 0; i < REGCNT; ++i) {
-		dump("\t%s = %lf\n", get_regname(i), regs[i]);
-	}
-	dump("}\n");
-
-	stack_dump(double, &stack, stderr);
-	stack_dump(size_t, &callstack, stderr);
-	dump("\n\n\n");
-}
-
 int const cpu_init(char const* binfile)
 {$_
 	FILE* ifile = fopen(binfile, "rb");

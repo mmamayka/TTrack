@@ -94,6 +94,24 @@ labeldic_err_t const labeldic_setaddr(char const* name, size_t addr)
 	}
 }
 
+char const* labeldic_addrname(size_t addr) 
+{$_
+	labeldic_assert();
+	for(label_t* l = labeldic.data; l < labeldic.data + labeldic.size; ++l) {
+		if(l->addr == addr) {
+			RETURN(l->name);
+		}
+	}
+	RETURN(NULL);
+$$
+}
+
+size_t const labeldic_size()
+{$_
+	labeldic_assert();
+	return labeldic.size;
+}
+
 labeldic_err_t const labeldic_check() {
 	if(labeldic.size > LABELDIC_MAX_LABELS) { 
 		return labeldic__set_error(LABELDIC_ERR_OVERFLOW); 

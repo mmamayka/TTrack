@@ -20,13 +20,14 @@ char const* const string_errstr(string_err_t const errc)
 	RETURN(_TABLE[errc]);
 }
 
-string_t const string_init(char* const begin, char* const end)
+string_t const string_init(char* begin, char* end)
 {$_
 	ASSERT(begin != NULL);
 	ASSERT(end != NULL);
 	ASSERT(end >= begin);
 
 	string_t string = { begin, end };
+	string.last = '\0';
 	RETURN(string);
 }
 string_t const string_make(char* const cstr)
@@ -53,49 +54,9 @@ void string_chomp(string_t* const string)
 	while(string->last > string->first && isspace(*(string->last - 1))) {
 		--string->last;
 	}
-
+	*string->last = '\0';
 	string_assert(string);
 $$
-}
-
-size_t const string_tok(string_t const* const string, string_t* const toks, 
-						size_t const max_toks, char const sep)
-{$_
-	string_assert(string);
-	ASSERT(toks != NULL);
-
-	size_t ntoks = 0;
-	char const* rover = string->first;
-	char const* ch = NULL;
-
-	do {
-		ch = memchr(rover, sep, string->last - rover);
-		if(ch != NULL) {
-			toks[ntoks].first = rover;
-			toks[ntoks].last = ch;
-			rover = ch + 1;
-		}
-		else {
-			toks[ntoks].first = rover;
-			toks[ntoks].last = string->last;
-		}
-		string_chomp(&toks[ntoks]);
-	} while(++ntoks < max_toks && ch != NULL);
-
-	RETURN(ntoks);
-}
-
-int const string_ceq(string_t const* const string, char const* const cstring)
-{$_
-	string_assert(string);
-	ASSERT(cstring != NULL);
-
-	size_t slen = string_length(string);
-	size_t cslen = strlen(cstring);
-	if(slen != cslen)
-		RETURN(0);
-
-	RETURN(memcmp(string->first, cstring, slen) == 0);
 }
 
 string_err_t const string_check(string_t const* const string)
@@ -185,7 +146,7 @@ size_t const count_lines(char const * const text, size_t const size, char const 
 	RETURN(nlines + 1);
 }
 
-size_t const split_text(char const* const text, size_t const size, char const sep, 
+size_t const split_text(char * const text, size_t const size, char const sep, 
 						string_t* const lines) 
 {$_
 	ASSERT(text != NULL);
@@ -195,11 +156,12 @@ size_t const split_text(char const* const text, size_t const size, char const se
 
 	string_t* curline = lines;
 
-	char const* rover = text;
-	for(char const* ch = text; ch < text + size; ++ch) {
+	char * rover = text;
+	for(char * ch = text; ch < text + size; ++ch) {
 		if(*ch == sep) {
 			curline->first = rover;
 			curline->last  = ch;
+			*curline->last = '\0';
 			++curline;
 
 			rover = ch + 1;
@@ -260,7 +222,7 @@ int const write_lines(FILE* const file, string_t const * const lines,
 	RETURN(1);
 }
 
-string_t* const get_text_lines(char const* const text, size_t const size, char const sep, 
+string_t* const get_text_lines(char * const text, size_t const size, char const sep, 
 							   size_t* const pnlines)
 {$_
 	ASSERT(text != NULL);
