@@ -1,19 +1,23 @@
-; (x + y) * (100 + 20)
-;    ^    ^      ^
-;    1    3      2
-in 
-in
 
-add ; op1
+push 1
+pop ax
 
-push 100
-push 20
+loop:
+	push ax
+	push ax
+	mul
+	out
 
-add ; op2
+	push ax
+	push 1
+	add
+	pop ax
 
-mul ; op3
+	push ax
+	push 10
+	je exit
+	jmp loop
 
-out
+exit:
 
-halt
-
+hlt

@@ -2,7 +2,9 @@ LDFLAGS := ../../ttrack-lib/lib/ttrack-lib.a -lm
 CFLAGS  := \
 	-Wall -Wextra \
 	-g \
-	-I../../ttrack-lib/hdr
+	-I../../ttrack-lib/hdr \
+	-I../LibCommon/hdr \
+	-DSTACKTRACE
 
 DOCPATH := doc-html
 OBJPATH := obj
