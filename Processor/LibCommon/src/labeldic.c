@@ -1,23 +1,29 @@
 #include <string.h>
+#include <stdlib.h>
 #include <ttrack/dbg.h>
 #include <stdint.h>
 #include "labeldic.h"
 
-
 typedef struct {
-	char const* name;
+	char* name;
 	size_t addr;
 } label_t;
 
-char const* labeldic_errstr(labeldic_err_t errc) {
-	ASSERT(errc >= 0 && errc < LABELDIC_NERRORS);
+static int labeldic__err_ok(labeldic_err_t errc) {
+	return errc >= 0 && errc < LABELDIC_NERRORS;
+}
+
+char const* labeldic_errstr(labeldic_err_t errc) 
+{$_
+	ASSERT(labeldic__err_ok(errc));
 
 	char const* TABLE[LABELDIC_NERRORS] = {
 		"ok",
 		"too much labels",
-		"invalid state"
+		"invalid state",
+		"out of memory"
 	};
-	return TABLE[errc];
+	RETURN(TABLE[errc]);
 }
 
 typedef struct {
@@ -26,11 +32,13 @@ typedef struct {
 	label_t data[LABELDIC_MAX_LABELS];
 } labeldic_t;
 
-static labeldic_t labeldic = {};
+static labeldic_t labeldic = { 
+	LABELDIC_ERR_OK, 0, {}, 
+};
 
 labeldic_err_t const labeldic__set_error(labeldic_err_t err) 
 {$_
-	ASSERT(err >= 0 && err < LABELDIC_NERRORS);
+	ASSERT(labeldic__err_ok(err));
 	RETURN(labeldic.err = err);
 $$
 }
@@ -44,11 +52,17 @@ static labeldic_err_t const labeldic__push(char const* name, size_t addr)
 		RETURN(labeldic__set_error(LABELDIC_ERR_OVERFLOW));
 	}
 
-	labeldic.data[labeldic.size].name = name;
+	size_t l = strlen(name) + 1;
+	labeldic.data[labeldic.size].name = (char*)malloc(sizeof(char) * l);
+	if(labeldic.data[labeldic.size].name == NULL) {
+		RETURN(labeldic__set_error(LABELDIC_ERR_MEM));
+	}
+	memcpy(labeldic.data[labeldic.size].name, name, l);
+
 	labeldic.data[labeldic.size].addr = addr;
 	++labeldic.size;
 
-	RETURN(labeldic__set_error(LABELDIC_ERR_OK));
+	RETURN(LABELDIC_ERR_OK);
 }
 static label_t* const labeldic__find(char const* name) 
 {$_
@@ -112,6 +126,17 @@ size_t const labeldic_size()
 	return labeldic.size;
 }
 
+labeldic_err_t const labeldic_error() 
+{$_
+	return labeldic.err;
+$$
+}
+void const labeldic_clear_error()
+{$_
+	labeldic.err = LABELDIC_ERR_OK;
+$$
+}
+
 labeldic_err_t const labeldic_check() {
 	if(labeldic.size > LABELDIC_MAX_LABELS) { 
 		return labeldic__set_error(LABELDIC_ERR_OVERFLOW); 
@@ -120,6 +145,12 @@ labeldic_err_t const labeldic_check() {
 		if(labeldic.data[i].name == NULL) { 
 			return labeldic__set_error(LABELDIC_ERR_STATE); 
 		}
+	}
+	if(!labeldic__err_ok(labeldic.err)) {
+		return labeldic__set_error(LABELDIC_ERR_ERRANGE);
+	}
+	if(labeldic.err != LABELDIC_ERR_OK) {
+		return labeldic__set_error(labeldic.err);
 	}
 	return labeldic__set_error(LABELDIC_ERR_OK);
 }
@@ -163,4 +194,10 @@ void labeldic__assert(char const* funcname, char const* filename, size_t nline)
 $$
 }
 
-
+void labeldic_free()
+{$_
+	labeldic_assert();
+	for(size_t i = 0; i < labeldic.size; ++i)
+		free(labeldic.data[i].name);
+$$
+}

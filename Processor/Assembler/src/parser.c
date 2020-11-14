@@ -13,6 +13,8 @@ static int const format_if_label(char* str)
 	ASSERT(str != NULL);
 
 	size_t l = strlen(str);
+	ASSERT(l != 0);
+
 	if(str[l - 1] == ':') {
 		str[l - 1] = '\0';
 		RETURN(1);
@@ -60,7 +62,7 @@ static int const parse()
 	while((terrc = tokenizer_nextline(PARSER_MAX_TOKENS, tokens, &ntokens)) 
 				== TOKENIZER_ERR_OK)
 	{
-		char* const* passtokens = tokens;
+		char** passtokens = tokens;
 
 		if(ntokens == 0) { continue; }
 
@@ -69,6 +71,7 @@ static int const parse()
 			++passtokens;
 			--ntokens;
 		}
+
 
 		if(ntokens == 0) { continue; }
 
@@ -84,6 +87,15 @@ static int const parse()
 			RETURN(0);
 		}
 	}
+
+	tokenizer_err_t err = tokenizer_error();
+	if(err != TOKENIZER_ERR_EOF) {
+		fprintf(stderr, "[ERROR] Tokenizer failed, reason: %s\n",
+			tokenizer_errstr(err));
+		RETURN(0);
+	}
+	tokenizer_clear_error();
+
 	RETURN(1);
 }
 
@@ -117,3 +129,10 @@ int const parser_pass(char const* fname, int pedantic)
 	RETURN(1);
 }
 
+int const parser_init() {
+	return 1;
+}
+
+void parser_free() {
+	labeldic_free();
+}

@@ -1,5 +1,6 @@
 #include <ttrack/dbg.h>
 #include <ttrack/binbuf.h>
+#include <libcommon/labeldic.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -23,11 +24,17 @@ int main(int argc, char* argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	if(!parser_init) {
+		exit(EXIT_FAILURE);
+	}
+
 	if(!parser_pass(argv[1], 0) || 
 	   (binbuf_reset(), !parser_pass(argv[1], 1))) {
 		exit(EXIT_FAILURE);
 	}
-	
+
+	parser_free();
+
 	FILE* ofile = fopen(argv[2], "wb");
 	if(ofile == NULL || binbuf_flush(ofile) != BINBUF_ERR_OK) {
 		fprintf(stderr, "[ERROR] Failed to write output file\n");

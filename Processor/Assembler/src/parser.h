@@ -5,4 +5,6 @@
 
 int const parser_pass(char const* fname, int pedantic);
 
+int const parser_init();
+void parser_free();
 #endif

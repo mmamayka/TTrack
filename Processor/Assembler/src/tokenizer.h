@@ -22,7 +22,8 @@ void tokenizer_free();
 tokenizer_err_t const tokenizer_nextline(size_t max_args, char* args[], size_t* num);
 size_t const tokenizer_nline();
 
-void tokenizer_reset();
+tokenizer_err_t const tokenizer_error();
+void tokenizer_clear_error();
 
 tokenizer_err_t const tokenizer_check();
 void tokenizer__dump(char const* funcname, char const* filename, size_t nline);

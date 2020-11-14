@@ -34,4 +34,6 @@ typedef enum {
 typedef unsigned char opcode_t;
 typedef unsigned short offset_t;
 
+char const* opcode_str(opcode_t opcode);
+
 #endif

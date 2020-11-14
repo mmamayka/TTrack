@@ -27,9 +27,13 @@ typedef enum {
 	OPCODE_JLE,		// 14
 	OPCODE_CALL,	// 15
 	OPCODE_RET,		// 16
+
+	OPCODES_COUNT
 } opcode_s;
 
 typedef unsigned char opcode_t;
 typedef unsigned short offset_t;
+
+char const* opcode_str(opcode_t opcode);
 
 #endif

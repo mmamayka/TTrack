@@ -1,7 +1,25 @@
+call main
+hlt
+
+sqr:
+	; copy value to the stack twice
+	pop ax
+	push ax
+	push ax
+
+	; find sqr
+	mul
+
+	; that is all
+	ret
+
+; emtry point
+main:
 	; initialize counter and store it in bx
 	in
 	pop bx
 
+	; initialize max counter value and store it in cx
 	in
 	pop cx
 
@@ -30,17 +48,4 @@ loop:
 	jmp loop
 
 exit:
-
-hlt
-
-sqr:
-	; copy value to the stack twice
-	pop ax
-	push ax
-	push ax
-
-	; find sqr
-	mul
-
-	; that is all
 	ret

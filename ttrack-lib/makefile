@@ -2,7 +2,7 @@ LDFLAGS := -lm
 CFLAGS  := \
 	-Wall -Wextra \
 	-g \
-	-DSTACKTRACE
+	-DSTACKTRACE \
 
 DOCPATH := doc-html
 OBJPATH := obj

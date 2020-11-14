@@ -4,9 +4,13 @@
 #include <string.h>
 #include "tokenizer.h"
 
+static int const tokenizer__error_ok(tokenizer_err_t errc) {
+	return errc >= 0 && errc < TOKENIZER_NERRORS;
+}
+
 char const* tokenizer_errstr(tokenizer_err_t errc)
 {$_
-	ASSERT(errc < 0 || errc >= TOKENIZER_NERRORS);
+	ASSERT(tokenizer__error_ok(errc));
 
 	char const* TABLE[] = {
 		"ok",
@@ -20,6 +24,7 @@ char const* tokenizer_errstr(tokenizer_err_t errc)
 }
 
 typedef struct {
+	tokenizer_err_t err;
 	char* text;
 	string_t* lines;
 	size_t nlines;
@@ -27,6 +32,11 @@ typedef struct {
 } tokenizer_t;
 
 tokenizer_t tokenizer = {};
+
+static tokenizer_err_t tokenizer__set_error(tokenizer_err_t err)
+{$_
+	return tokenizer.err = err;
+}
 
 static void tokenizer__remove_comments() 
 {$_
@@ -51,10 +61,10 @@ tokenizer_err_t const tokenizer_init(FILE* file)
 	tokenizer.text = read_text(file, &text_size, &rt_errc);
 	switch(rt_errc) {
 	case RT_MEMORY:
-		RETURN(TOKENIZER_ERR_MEM);
+		RETURN(tokenizer__set_error(TOKENIZER_ERR_MEM));
 		break;
 	case RT_IO:
-		RETURN(TOKENIZER_ERR_STDIO);
+		RETURN(tokenizer__set_error(TOKENIZER_ERR_STDIO));
 		break;
 	default:
 		break;
@@ -63,7 +73,7 @@ tokenizer_err_t const tokenizer_init(FILE* file)
 	tokenizer.lines = get_text_lines(tokenizer.text, text_size, '\n', &tokenizer.nlines);
 	if(tokenizer.lines == NULL) {
 		free(tokenizer.text);
-		RETURN(TOKENIZER_ERR_MEM);
+		RETURN(tokenizer__set_error(TOKENIZER_ERR_MEM));
 	}
 
 	tokenizer.curline = 0;
@@ -88,7 +98,7 @@ tokenizer_err_t const tokenizer_nextline(size_t max_args, char* args[], size_t* 
 	char const* SPACES = " \t";
 
 	if(tokenizer.curline == tokenizer.nlines) {
-		RETURN(TOKENIZER_ERR_EOF);
+		RETURN(tokenizer__set_error(TOKENIZER_ERR_EOF));
 	}
 
 	string_t* line = tokenizer.lines + tokenizer.curline;
@@ -105,7 +115,7 @@ tokenizer_err_t const tokenizer_nextline(size_t max_args, char* args[], size_t* 
 	++tokenizer.curline;
 
 	if(pos != NULL) {
-		RETURN(TOKENIZER_ERR_OVERFLOW);
+		RETURN(tokenizer__set_error(TOKENIZER_ERR_OVERFLOW));
 	}
 	
 	RETURN(TOKENIZER_ERR_OK);
@@ -117,16 +127,26 @@ size_t const tokenizer_nline()
 	RETURN(tokenizer.curline);
 }
 
-void tokenizer_reset() 
+tokenizer_err_t const tokenizer_error()
 {$_
-	tokenizer_assert();
-	tokenizer.curline = 0;
+	RETURN(tokenizer.err);
 $$
 }
+void tokenizer_clear_error()
+{$_
+	tokenizer.err = TOKENIZER_ERR_OK;
+$$
+}
+
 tokenizer_err_t const tokenizer_check() 
 {$_
 	if(tokenizer.text == NULL || tokenizer.lines == NULL || 
-	   tokenizer.curline > tokenizer.nlines) { RETURN(TOKENIZER_ERR_STATE); }
+	   tokenizer.curline > tokenizer.nlines) { 
+		RETURN(tokenizer__set_error(TOKENIZER_ERR_STATE)); 
+	}
+	if(tokenizer.err != TOKENIZER_ERR_OK) {
+		return tokenizer.err;
+	}
 	RETURN(TOKENIZER_ERR_OK);
 }
 
@@ -135,11 +155,13 @@ void tokenizer__dump(char const* funcname, char const* filename, size_t nline)
 	ASSERT(funcname != NULL);
 	ASSERT(filename != NULL);
 
-	dump("tokenizer_t dump from %s (%s %zu)\n", funcname, filename, nline);
+	dump("tokenizer_t dump from %s (%s %zu), reason %i (%s)\n", 
+		funcname, filename, nline, tokenizer.err, tokenizer_errstr(tokenizer.err));
 	dump("{\n");
 
-	dump("\ttext [%p] = \"\n%s\n\"\n", tokenizer.text, tokenizer.text);
-	dump("\tlines [%p] = TODO!!!!!11!!!\n", tokenizer.lines);
+	dump("\terr = %i (%s)\n", tokenizer.err, tokenizer_errstr(tokenizer.err));
+	dump("\ttext [%p]\n", tokenizer.text);
+	dump("\tlines [%p]\n", tokenizer.lines);
 	dump("\tnlines = %zu\n", tokenizer.nlines);
 	dump("\tcurline = %zu\n", tokenizer.curline);
 

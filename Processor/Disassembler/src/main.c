@@ -62,18 +62,12 @@ int const cmd_disasm_val(char* line)
 
 #define LABELNAME_LEN 10
 
-char* gen_labelname() 
+int const gen_labelname(char* name) 
 {$_
-	char* name = (char*)malloc(sizeof(char) * LABELNAME_LEN);
-	if(name == NULL) {
-		RETURN(NULL);
-	}
-
 	if(snprintf(name, LABELNAME_LEN, "L_%.6zu", labeldic_size()) < 0) {
-		free(name);
-		RETURN(NULL);
+		RETURN(0);
 	}
-	RETURN(name);
+	RETURN(1);
 }
 
 int const cmd_disasm_label(char* line)
@@ -82,19 +76,21 @@ int const cmd_disasm_label(char* line)
 	if(binbuf_read_value(offset_t, offset) != BINBUF_ERR_OK) {
 		RETURN(0);
 	}
-	char const* labelname;
+	char const* labelname = NULL;
 	if((labelname = labeldic_addrname((size_t)offset)) != NULL) {
 		if(snprintf(line, MAX_LINE_LEN, labelname) < 0) {
 			RETURN(0);
 		}
 	}
 	else {
-		labelname = gen_labelname();
-		if(labeldic_setaddr(labelname, (size_t)offset) != LABELDIC_ERR_OK) {
-			free(labelname);
+		char nlabelname[LABELNAME_LEN];
+		if(!gen_labelname(nlabelname)) {
 			RETURN(0);
 		}
-		if(snprintf(line, MAX_LINE_LEN, labelname, (size_t)offset) < 0) {
+		if(labeldic_setaddr(nlabelname, (size_t)offset) != LABELDIC_ERR_OK) {
+			RETURN(0);
+		}
+		if(snprintf(line, MAX_LINE_LEN, nlabelname, (size_t)offset) < 0) {
 			RETURN(0);
 		}
 	}
@@ -202,6 +198,8 @@ int main(int argc, char* argv[])
 	disasm_pass(ofile, 1);
 
 	fclose(ofile);
+
+	labeldic_free();
 
 	binbuf_clearerr();
 	binbuf_free();

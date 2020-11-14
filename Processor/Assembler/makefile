@@ -19,7 +19,7 @@ BINNAME := assembler
 DOXCONF := doxygen
 
 run: $(BINPATH)/$(BINNAME)
-	./$< example.asm example.bin
+
 
 build: $(BINPATH)/$(BINNAME)
 

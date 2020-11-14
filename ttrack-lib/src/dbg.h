@@ -12,27 +12,93 @@
 
 #endif /* __GNUC__ */
 
-#define ASSERT_(expr, func, file, line)													\
+/* \def STACKTRACE_PRINT
+ * \brief Распечатывает трассировку стека вызовов в режиме трассировки и отладки.
+ *
+ * Если не определен макрос STACKTRACE или наоборот определен NDEBUG не делает ничего.
+ */
+
+/* \def STACKTRACE_PUSH
+ * \brief Помещает данные текущей функции в стек вызовов.
+ *
+ * Должна вызываться единожды для каждой функции. Все точки выхода из функции
+ * должны быть помечены при помощи RETURN, STACKTRACE_POP или $$.
+ *
+ * Если не определен макрос STACKTRACE или наоборот определен NDEBUG не делает ничего.
+ */
+
+/* \def STACKTRACE_POP
+ * \brief Извлекает данные о последней вызванной функции из стека вызовов.
+ *
+ * Если не определен макрос STACKTRACE или наоборот определен NDEBUG не делает ничего.
+ */
+
+/* \def $_
+ * \brief То же самое, что и STACK_PUSH.
+ */
+
+/* \def $$
+ * \brief То же самое, что и STACK_POP.
+ */
+
+/* \def RETURN
+ * \brief Перегрузка return для извлечения данных из стека вызовов при выходе из
+ * 		функции.
+ *
+ * Если не определен макрос STACKTRACE или наоборот определен NDEBUG полностью
+ * эквивалентна return.
+ */
+
+#if !defined NDEBUG && defined STACKTRACE
+#	define STACKTRACE_PRINT stacktrace_print(stderr);
+
+#	define STACKTRACE_PUSH stacktrace__push(__func__, __FILE__, __LINE__);
+#	define STACKTRACE_POP  stacktrace__pop();
+
+#	define $_ STACKTRACE_PUSH
+#	define $$ STACKTRACE_POP
+
+#	define RETURN(...)			\
+	do {						\
+		STACKTRACE_POP			\
+		return __VA_ARGS__;		\
+	} while(0)
+
+#else /* !defined NDEBUG && defined STACKTRACE */
+#	define STACKTRACE_PRINT
+
+#	define STACKTRACE_PUSH
+#	define STACKTRACE_POP
+
+#	define $_
+#	define $$
+
+#	define RETURN(...) return __VA_ARGS__
+#endif /* !defined NDEBUG && defined STACKTRACE */
+
+/* \def ASSERT(expr)
+ * \brief Перегрузка стандартного assert, распечатывающая трассировку стека вызовов.
+ *
+ * Если не определен макрос STACKTRACE или наоборот определен NDEBUG полностью
+ * эквивалентна assert.
+ */
+
+#ifndef NDEBUG
+#	define ASSERT_(expr, func, file, line)												\
 	do {																				\
 		if(!(expr)) {																	\
 			fprintf(stderr, "assertion %s failed at %s (%s %zu)\n", #expr, func, file,	\
 					(size_t)line);														\
-			stacktrace_print(stderr);													\
+			STACKTRACE_PRINT															\
 			assert(0);																	\
 		}																				\
 	} while(0)
 
-#define ASSERT(expr) ASSERT_(expr, __func__, __FILE__, __LINE__)
+#	define ASSERT(expr) ASSERT_(expr, __func__, __FILE__, __LINE__)
+#else /* NDEBUG */
 
-#ifdef STACKTRACE
-#define RETURN(...)				\
-	do {						\
-		$$						\
-		return (__VA_ARGS__);	\
-	} while(0)
-#else
-#define RETURN(...) return (__VA_ARGS__)
-#endif
+#	define ASSERT(expr) (void)(expr);
+#endif /* NDEBUG */
 
 /**
  * \brief Prints formated debug message.
@@ -49,7 +115,7 @@
  *
  * \warning Private function for DBG and ERR macro. Don't use it unless you have
  * 		your head up your ass. Otherwise %s and %i sequences in head_format must be 
- * 		written is THAT ORDER: %s before %i. They are hardcoded in printf.
+ * 		written is THAT ORDER: %s before %i.
  */
 void dbg__message(char const* const file, int line, FILE* const stream, 
 		char const* const head_format, char const* const body_format, ...);
@@ -61,16 +127,6 @@ void dbg__message(char const* const file, int line, FILE* const stream,
  * 	Format of the message: DEBUG <filename> (<line no>): <the message>.
  */
 
-/* \def ERR(...)
- * \brief Prints error message formated with printf rules to stderr stream.
- *
- * Format of the message in debug mode (NDEBUG isn't defined):
- * 		ERROR AT <filename> (<line no>): <error message>.
- *
- * Format of the message in release mode (NDEBUG is defined):
- * 		ERROR: <error message>.
- */
-
 #ifdef NDEBUG
 #	define DBG(...) 
 #else
@@ -79,6 +135,13 @@ void dbg__message(char const* const file, int line, FILE* const stream,
 		dbg__message(__FILE__, __LINE__, stdout, "DEBUG %s (%i): ", __VA_ARGS__)
 #endif
 
+/* \def stream_assert(stream)
+ * \brief Проверяет поток на неравенство NULL и на отсутствие флагов ошибок ferror().
+ *
+ * Если опререлен NDEBUG не делает ничего.
+ *
+ * \param[in] stream поток для проверки.
+ */
 
 #define stream_assert(stream) 			\
 	do {								\
@@ -86,17 +149,44 @@ void dbg__message(char const* const file, int line, FILE* const stream,
 		assert(ferror(stream) == 0);	\
 	} while(0)
 
+/* \def DUMP_BUFSIZE
+ * \brief Максимально возможное количество напечатанных символов за один вызов
+ * 		функции dump.
+ *
+ * Может быть переопределено при компиляции.
+ */
+
 #ifndef DUMP_BUFSIZE
 #	define DUMP_BUFSIZE (1024 * 4)
 #endif
+
+/* \def DUMP_MAXDEPTH
+ * \brief Максимальное количество автоматически сгенерированных функцикй dump.
+ * 		отступов.
+ *
+ * Может быть переопределено при компиляции.
+ */
 
 #ifndef DUMP_MAXDEPTH
 #	define DUMP_MAXDEPTH 10
 #endif
 
+/* \def DUMP_HEX_BLOCK_SIZE
+ * \brief Размер блока при печати шестнадцатиричных данных при помощи функции dump_hex.
+ *
+ * Может быть переопределено при компиляции.
+ */
+
 #ifndef DUMP_HEX_BLOCK_SIZE
 #	define DUMP_HEX_BLOCK_SIZE 4
 #endif
+
+/* \def DUMP_HEX_BLOCKS_IN_LINE
+ * \brief Число блоков в строке при печати шестнадцатиричных данных при помощи 
+ * 		функции dump_hex.
+ *
+ * Может быть переопределено при компиляции.
+ */
 
 #ifndef DUMP_HEX_BLOCKS_IN_LINE
 #	define DUMP_HEX_BLOCKS_IN_LINE 4
@@ -119,6 +209,7 @@ void dbg__message(char const* const file, int line, FILE* const stream,
 extern size_t DUMP_DEPTH;
 extern FILE*  DUMP_STREAM;
 extern int    DUMP_TAB_FIRST_LINE;
+
 void dump(char const* format, ...);
 void dump_hex(unsigned char const* data, size_t size);
 
@@ -133,20 +224,7 @@ void stacktrace__dump(char const* funcname, char const* filename, size_t nline);
 #define stacktrace_dump() \
 	stacktrace__dump(__func__, __FILE__, __LINE__)
 
-#ifdef STACKTRACE
-#	define STACKTRACE_PUSH stacktrace__push(__func__, __FILE__, __LINE__);
-#	define STACKTRACE_POP  stacktrace__pop();
-
-#	define $_ STACKTRACE_PUSH
-#	define $$ STACKTRACE_POP
-#else
-#	define STACKTRACE_PUSH
-#	define STACKTRACE_POP
-
-#	define $_
-#	define $$
-#endif
-
-#endif
-
 void stacktrace_print(FILE* const stream);
+
+#endif
+
