@@ -22,6 +22,19 @@ static binbuf_err_t binbuf__set_error(binbuf_err_t err)
 $$
 }
 
+static uint32_t const binbuf__hash_till_size()
+{$_
+	binbuf_assert();
+
+	RETURN( gnu_hash(binbuf.data, binbuf.capacity) );
+}
+static uint32_t const binbuf__hash_till_cap() 
+{$_
+	binbuf_assert();
+
+	RETURN( gnu_hash(binbuf.data, binbuf.capacity) );
+}
+
 char const* binbuf_errstr(binbuf_err_t errc)
 {$_
 	if(errc < 0 || errc >= BINBUF_NERRORS) {
@@ -34,7 +47,8 @@ char const* binbuf_errstr(binbuf_err_t errc)
 		"out of range",
 		"data pointer is null",
 		"error in stdio",
-		"invalid error value"
+		"invalid error value",
+		"invalid hash"
 	};
 	RETURN(TABLE[errc]);
 }
@@ -51,7 +65,7 @@ binbuf_err_t const binbuf_init(size_t capacity)
 	binbuf.size = 0;
 	binbuf.capacity = capacity;
 	binbuf.err = BINBUF_ERR_OK;
-	RETURN(binbuf__set_error(BINBUF_ERR_OK));
+	RETURN(BINBUF_ERR_OK);
 }
 
 binbuf_err_t const binbuf_initf(FILE* stream)
@@ -60,11 +74,38 @@ binbuf_err_t const binbuf_initf(FILE* stream)
 
 	RT_err_t errc;
 	binbuf.data = (unsigned char*)read_text(stream, &binbuf.capacity, &errc);
-	if(errc != RT_OK) {
+	if(errc == RT_IO) {
 		RETURN(binbuf__set_error(BINBUF_ERR_STDIO));
 	}
+	if(errc == RT_MEMORY) {
+		RETURN(binbuf__set_error(BINBUF_ERR_MEM));
+	}
+
 	binbuf.size = binbuf.capacity;
-	RETURN(binbuf__set_error(BINBUF_ERR_OK));
+	RETURN(BINBUF_ERR_OK);
+}
+
+binbuf_err_t const binbuf_inithf(FILE* stream)
+{$_
+	stream_assert(stream);
+
+	uint32_t hash;
+	if(fread(&hash, sizeof(uint32_t), 1, stream) != 1) {
+		RETURN(BINBUF_ERR_STDIO);
+	}
+
+	binbuf_err_t err = binbuf_initf(stream);
+
+	if(err != BINBUF_ERR_OK) {
+		RETURN(err);
+	}
+
+	uint32_t real_hash = binbuf__hash_till_cap();
+	if(real_hash != hash) {
+		RETURN(binbuf__set_error(BINBUF_ERR_HASH));
+	}
+	RETURN(BINBUF_ERR_OK);
+$$
 }
 
 void binbuf_free() 
@@ -176,6 +217,16 @@ binbuf_err_t const binbuf_flush(FILE* stream)
 	RETURN(binbuf__set_error(written == binbuf.size ? BINBUF_ERR_OK : BINBUF_ERR_STDIO));
 }
 
+binbuf_err_t const binbuf_flushh(FILE* stream) {
+	stream_assert(stream);
+
+	uint32_t hash = binbuf__hash_till_size();
+	if(fwrite(&hash, sizeof(uint32_t), 1, stream) != 1) {
+		RETURN(binbuf__set_error(BINBUF_ERR_STDIO));
+	}
+	return binbuf_flush(stream);
+}
+
 void binbuf_reset() 
 {$_
 	binbuf_assert();
@@ -210,3 +261,4 @@ int const binbuf_ok()
 {
 	return(binbuf.err == BINBUF_ERR_OK);
 }
+

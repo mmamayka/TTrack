@@ -41,8 +41,8 @@ void ReadCoeff(double* pa, double* pb, double* pc, double* eps) {
 			break;
 		}
 
-		// scanf("%*[^\n]");
-		fflush(stdin);
+		scanf("%*[^\n]");
+		//fflush(stdin);
 
 		printf("Damn, dude! How could you fail this?!\n");
 	}

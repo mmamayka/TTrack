@@ -1,5 +1,5 @@
-#ifndef TEXT_H
-#define TEXT_H
+#ifndef TTRACK_TEXT_H
+#define TTRACK_TEXT_H
 
 #ifdef __GNUC__
 
@@ -9,67 +9,12 @@
 
 #endif /* __GNUC__ */
 
-
 #include <stdio.h>
 #include <stdint.h>
-
-#define stream_assert(stream) 			\
-	do {								\
-		assert(stream != NULL);			\
-		assert(ferror(stream) == 0);	\
-	} while(0)
+#include "strv.h"
 
 /// Function FileSize() returns this value if any error occured.
 #define FSIZE_ERR SIZE_MAX 
-
-/// Contains pointers to first and last ('\0') line symbols.
-typedef struct {
-	char * first; ///< pointer to the first symbol.
-	char * last;  ///< pointer to the last symbol.
-} string_t;
-
-typedef enum {
-	STRING_ERR_OK = 0,
-	STRING_ERR_FIRST_PTR,
-	STRING_ERR_LAST_PTR,
-	STRING_ERR_STATE,
-	STRING_ERR_NULL,
-
-	STRING_NERRORS
-} string_err_t;
-
-char const* const string_errstr(string_err_t const errc);
-
-string_t const string_init(char* begin, char* end);
-string_t const string_make(char* const cstr);
-
-size_t const string_length(string_t const* const string);
-
-void string_chomp(string_t* const string);
-
-size_t const string_tok(string_t const* const string, string_t* const toks, 
-						size_t const max_toks, char const sep);
-// TODO: rewrite split_text with string_tok using
-
-int const string_ceq(string_t const* const string, char const* const cstring);
-
-string_err_t const string_check(string_t const* const string);
-void string__dump(string_t const* const string, FILE* const stream, 
-				  char const* const funcname, char const* const filename,
-				  size_t const nline);
-
-#define string_dump(string, stream) \
-	string__dump(string, stream, __func__, __FILE__, __LINE__)
-
-void string__assert(string_t const* const string, char const* const funcname,
-					char const* const filename, size_t const nline);
-
-#ifdef NDEBUG
-#	define string_assert(string) \
-		string__assert(string, __func__, __FILE__, __LINE__)
-#else
-#	define string_assert(string)
-#endif
 
 /**
  * \brief Returns size of the file in bytes. Rewinds the stream.
@@ -137,7 +82,7 @@ char* const read_text2(char const* const fname, size_t* const psize, RF_err_t* c
  *
  * \warning You have to call free() for the return value.
  */
-string_t* const get_text_lines(char * const text, size_t const size, char const sep, 
+strv_t* const get_text_lines(char * const text, size_t const size, char const sep, 
 							   size_t* const pnlines);
 
 /**
@@ -161,7 +106,7 @@ size_t const count_lines(char const * const text, size_t const size, char const 
  * \return count of lines.
  */
 size_t const split_text(char * const text, size_t const size, char const sep,
-						string_t* const lines);
+						strv_t* const lines);
 
 
 /**
@@ -174,7 +119,7 @@ size_t const split_text(char * const text, size_t const size, char const sep,
  *
  * \return 1 in case of success, 0 otherwise.
  */
-int const write_lines(FILE* const file, string_t const * const lines, 
+int const write_lines(FILE* const file, strv_t const * const lines, 
 					   size_t const nlines);
 
 /**
@@ -186,7 +131,7 @@ int const write_lines(FILE* const file, string_t const * const lines,
  *
  * \return 1 in case of success, 0 otherwise.
  */
-int const write_lines2(char const* const fname, string_t const * const lines,
+int const write_lines2(char const* const fname, strv_t const * const lines,
 					size_t const nlines);
 
 /* 

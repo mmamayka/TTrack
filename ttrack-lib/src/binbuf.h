@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include "hash.h"
 
 typedef enum {
 	BINBUF_ERR_OK = 0,
@@ -11,6 +12,7 @@ typedef enum {
 	BINBUF_ERR_DATA,
 	BINBUF_ERR_STDIO,
 	BINBUF_ERR_ERRRANGE,
+	BINBUF_ERR_HASH,
 	BINBUF_NERRORS
 } binbuf_err_t;
 
@@ -18,6 +20,9 @@ char const* binbuf_errstr(binbuf_err_t errc);
 
 binbuf_err_t const binbuf_init(size_t capacity);
 binbuf_err_t const binbuf_initf(FILE* stream);
+
+binbuf_err_t const binbuf_inithf(FILE* stream);
+
 void binbuf_free();
 
 binbuf_err_t binbuf_check();
@@ -38,6 +43,7 @@ size_t const binbuf_pos();
 	binbuf_read(&value, sizeof(type))
 
 binbuf_err_t const binbuf_flush(FILE* stream);
+binbuf_err_t const binbuf_flushh(FILE* stream);
 
 void binbuf_reset();
 binbuf_err_t const binbuf_seek(size_t pos);
@@ -45,7 +51,7 @@ binbuf_err_t const binbuf_seek(size_t pos);
 binbuf_err_t const binbuf_error();
 void binbuf_clearerr();
 
-
 int const binbuf_ok();
+
 
 #endif /* BINBUF_H */

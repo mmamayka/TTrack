@@ -120,7 +120,7 @@
 void dbg__message(char const* const file, int line, FILE* const stream, 
 		char const* const head_format, char const* const body_format, ...);
 
-/* \def DBG(...)
+/** \def DBG(...)
  * \brief Prints debug message formated with printf rules to stdout stream in debug mode.
  * 		Does nothing in release mode (NDEBUG is defined).
  *
@@ -135,7 +135,7 @@ void dbg__message(char const* const file, int line, FILE* const stream,
 		dbg__message(__FILE__, __LINE__, stdout, "DEBUG %s (%i): ", __VA_ARGS__)
 #endif
 
-/* \def stream_assert(stream)
+/** \def stream_assert(stream)
  * \brief Проверяет поток на неравенство NULL и на отсутствие флагов ошибок ferror().
  *
  * Если опререлен NDEBUG не делает ничего.
@@ -149,7 +149,7 @@ void dbg__message(char const* const file, int line, FILE* const stream,
 		assert(ferror(stream) == 0);	\
 	} while(0)
 
-/* \def DUMP_BUFSIZE
+/** \def DUMP_BUFSIZE
  * \brief Максимально возможное количество напечатанных символов за один вызов
  * 		функции dump.
  *
@@ -160,7 +160,7 @@ void dbg__message(char const* const file, int line, FILE* const stream,
 #	define DUMP_BUFSIZE (1024 * 4)
 #endif
 
-/* \def DUMP_MAXDEPTH
+/** \def DUMP_MAXDEPTH
  * \brief Максимальное количество автоматически сгенерированных функцикй dump.
  * 		отступов.
  *
@@ -171,7 +171,7 @@ void dbg__message(char const* const file, int line, FILE* const stream,
 #	define DUMP_MAXDEPTH 10
 #endif
 
-/* \def DUMP_HEX_BLOCK_SIZE
+/** \def DUMP_HEX_BLOCK_SIZE
  * \brief Размер блока при печати шестнадцатиричных данных при помощи функции dump_hex.
  *
  * Может быть переопределено при компиляции.
@@ -181,7 +181,7 @@ void dbg__message(char const* const file, int line, FILE* const stream,
 #	define DUMP_HEX_BLOCK_SIZE 4
 #endif
 
-/* \def DUMP_HEX_BLOCKS_IN_LINE
+/** \def DUMP_HEX_BLOCKS_IN_LINE
  * \brief Число блоков в строке при печати шестнадцатиричных данных при помощи 
  * 		функции dump_hex.
  *
@@ -192,22 +192,45 @@ void dbg__message(char const* const file, int line, FILE* const stream,
 #	define DUMP_HEX_BLOCKS_IN_LINE 4
 #endif
 
+/** \def DUMP_PUSHDEPTH
+ * \brief Stores DUMP_DEPTH value in local variable.
+ *
+ */
 
 #define DUMP_PUSHDEPTH \
 	size_t dump_depth  = DUMP_DEPTH;
 
+/** \def DUMP_POPDEPTH
+ *  \brief Restores DUMP_DEPTH value stored with DUMP_PUSHDEPTH
+ *
+ */
+
 #define DUMP_POPDEPTH \
 	DUMP_DEPTH = dump_depth;
+
+/** \def DUMP_PUSHTFL
+ *  \brief Stores DUMP_TAB_FIRST_LINE value in local variable.
+ *
+ */
 
 #define DUMP_PUSHTFL \
 	size_t dump_tab_first_line = DUMP_TAB_FIRST_LINE;
 
+/** \def DUMP_POPFTL
+ *  \brief Restores DUMP_TAB_FIRST_LINE value stored with DUMP_PUSHTFL
+ *
+ */
+
 #define DUMP_POPTFL \
 	DUMP_TAB_FIRST_LINE = dump_tab_first_line;
 
-
+/// Number of '\t' symbols to be inserted in front of dump text
 extern size_t DUMP_DEPTH;
+
+/// Stream dump text will be written info
 extern FILE*  DUMP_STREAM;
+
+/// Tab first line of dump text or not
 extern int    DUMP_TAB_FIRST_LINE;
 
 void dump(char const* format, ...);
