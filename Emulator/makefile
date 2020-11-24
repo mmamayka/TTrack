@@ -1,6 +1,6 @@
 LDFLAGS := \
 	../ttrack-lib/lib/ttrack-lib.a \
-	../LibCommon/lib/libcommon.a \
+	../LibAsm/lib/libcommon.a \
 	-lm \
 	-lsfml-window \
 	-lsfml-graphics \
@@ -10,7 +10,7 @@ CFLAGS  := \
 	-Wall -Wextra \
 	-g \
 	-I../ttrack-lib/hdr \
-	-I../LibCommon/hdr \
+	-I../LibAsm/hdr \
 	-DSTACKTRACE
 
 DOCPATH := doc-html
