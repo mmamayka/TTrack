@@ -235,6 +235,7 @@ extern int    DUMP_TAB_FIRST_LINE;
 
 void dump(char const* format, ...);
 void dump_hex(unsigned char const* data, size_t size);
+void dump_raw(char const* data, size_t size);
 
 void stacktrace__push(char const* const funcname, char const* const filename, 
 					  size_t const nline);

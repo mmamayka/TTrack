@@ -1,0 +1,15 @@
+[
+	"Does it say 'meow'?"
+	[
+		"Does it live in lodge?"
+		[
+			"dog"
+		]
+		[
+			"Fox"
+		]
+	]
+	[
+		"cat"
+	]
+]

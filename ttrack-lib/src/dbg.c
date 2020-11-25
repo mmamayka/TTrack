@@ -91,6 +91,10 @@ void dump(char const* format, ...)
 
 }
 
+void dump_raw(char const* data, size_t size) {
+	fwrite(data, sizeof(char), size, stderr);
+}
+
 void dump_hex(unsigned char const* data, size_t size) {
 	if(data == NULL || size == 0) { return; }
 

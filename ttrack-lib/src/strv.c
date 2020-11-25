@@ -1,5 +1,7 @@
 #include <string.h>
+#include <stdlib.h>
 #include <ctype.h>
+#include <stddef.h>
 #include "dbg.h"
 #include "strv.h"
 
@@ -92,18 +94,64 @@ char const* strv_end(strv_t const* strv)
 $$
 }
 
-void strv_chomp(strv_t* strv)
+void strv_chompf(strv_t* strv)
 {$_
 	strv_assert(strv);
 
-	while(strv->pfirst < strv->plast && isalpha(*strv->pfirst)) {
+	while(strv->pfirst < strv->plast && isspace(*strv->pfirst)) {
 		++strv->pfirst;
 	}
-	while(strv->pfirst < strv->plast && isalpha(*(strv->plast - 1))) {
+
+	strv_assert(strv);
+$$
+}
+
+void strv_chompb(strv_t* strv)
+{$_
+	strv_assert(strv);
+
+	while(strv->pfirst < strv->plast && isspace(*(strv->plast - 1))) {
 		--strv->plast;
 	}
 
 	strv_assert(strv);
+$$
+}
+
+
+void strv_chomp(strv_t* strv)
+{$_
+	strv_assert(strv);
+
+	strv_chompf(strv);
+	strv_chompb(strv);
+
+	strv_assert(strv);
+$$
+}
+
+void strv_copy(strv_t* strv, char* buf)
+{$_
+	strv_assert(strv);
+	ASSERT(buf != NULL);
+
+	size_t len = strv_len(strv);
+	memcpy(buf, strv->pfirst, len);
+	buf[len] = '\0';
+$$
+}
+char* strv_tostr(strv_t* strv)
+{$_
+	strv_assert(strv);
+	size_t len = strv_len(strv);
+
+	char* str = (char*)calloc(sizeof(char), len + 1);
+	if(str == NULL) {
+		RETURN(NULL);
+	}
+
+	memcpy(str, strv->pfirst, len);
+	RETURN(str);
 $$
 }
 
@@ -193,11 +241,30 @@ void strv__dump(strv_t const* strv, char const* funcname, char const* filename,
 {$_
 	strv_err_t err = strv_check(strv);
 	dump("strv_t [%p] dump from %s (%s %zu), reason %i (%s) {\n",
-		 strv, funcname, filename, nline, strv_errstr(err));
+		 strv, funcname, filename, nline, err, strv_errstr(err));
 
 	if(strv != NULL) {
 		dump("\tpfirst = %p\n", strv->pfirst);
 		dump("\tplast = %p\n", strv->plast);
+
+		ptrdiff_t dif = strv->plast - strv->pfirst;
+		dump("\t[diff] = %ti\n", dif);
+		
+		dump("\t[data] = ");
+
+		DUMP_PUSHTFL
+		DUMP_TAB_FIRST_LINE = 0;
+
+		if(dif >= 0) {
+			dump("\"");
+			dump_raw(strv->pfirst, (size_t)dif);
+			dump("\"\n");
+		}
+		else {
+			dump("INVALID\n");
+		}
+
+		DUMP_POPTFL
 	}
 	dump("}\n");
 $$

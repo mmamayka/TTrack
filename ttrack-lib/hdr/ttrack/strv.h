@@ -30,7 +30,12 @@ char const strv_back(strv_t const* strv);
 char const* strv_begin(strv_t const* strv);
 char const* strv_end(strv_t const* strv);
 
+void strv_chompf(strv_t* strv);
+void strv_chompb(strv_t* strv);
 void strv_chomp(strv_t* strv);
+
+void strv_copy(strv_t* strv, char* buf);
+char* strv_tostr(strv_t* strv);
 
 int const strv_cmp(strv_t const* lstrv, strv_t const* rstrv);
 int const strv_ccmp(strv_t const* strv, char const* cstr);

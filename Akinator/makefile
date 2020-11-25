@@ -1,6 +1,7 @@
 LDFLAGS := ../ttrack-lib/lib/ttrack-lib.a -lm
 CFLAGS  := \
 	-Wall -Wextra \
+	-DSTACKTRACE \
 	-g \
 	-I../ttrack-lib/hdr
 

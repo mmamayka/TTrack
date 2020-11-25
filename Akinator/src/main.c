@@ -1,219 +1,367 @@
 #include <stdio.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ttrack/dbg.h>
 #include <ttrack/binbuf.h>
+#include <ttrack/strv.h>
+#include <ttrack/text.h>
 
-#include "node.h"
+#include "tree.h"
+#include "writer.h"
 #include "io.h"
 
 typedef enum {
-	TREE_ERR_OK,
-	TREE_ERR_LOOP,
-	TREE_ERR_NODE,
-	TREE_ERR_NULL,
+	TOK_UNKNOWN,
+	TOK_OPENBR,
+	TOK_CLOSEBR,
+	TOK_STRING,
+	TOK_EOF,
+} tok_type_t;
 
-	TREE_NERRORS
-} tree_err_t;
+typedef struct {
+	tok_type_t type;
+	strv_t data;
+} tok_t;
 
-char const* tree_errstr(tree_err_t err)
+typedef enum {
+	TOKENIZER_ERR_OK,
+	TOKENIZER_ERR_MEM,
+	TOKENIZER_ERR_STDIO,
+	TOKENIZER_ERR_NF,
+	TOKENIZER_ERR_EOSTR,
+	TOKENIZER_ERR_NULL,
+	TOKENIZER_ERR_STATE,
+	TOKENIZER_ERR_ERRANGE,
+	
+	TOKENIZER_NERRORS
+} tokenizer_err_t;
+
+int const tokenizer_err_ok(tokenizer_err_t err)
 {$_
-	ASSERT(err >= 0 && err < TREE_NERRORS);
+	RETURN(err >= 0 && err < TOKENIZER_NERRORS);
+$$
+}
 
-	char const* TABLE[TREE_NERRORS] = {
+void tokenizer__err_assert(tokenizer_err_t err, char const* funcname, char const* filename,
+						   size_t nline)
+{$_
+	ASSERT_(tokenizer_err_ok(err), funcname, filename, nline);
+$$
+}
+
+#define tokenizer_err_assert(err) \
+	tokenizer__err_assert(err, __func__, __FILE__, __LINE__)
+
+char const* tokenizer_errstr(tokenizer_err_t err)
+{$_
+	tokenizer_err_assert(err);
+
+	char const* TABLE[TOKENIZER_NERRORS] = {
 		"ok",
-		"loop",
-
+		"out of memory",
+		"error in stdio",
+		"file not found",
+		"unexpected end of line",
+		"instance pointer is null",
+		"invalid state",
+		"invalid error"
 	};
-
 	RETURN(TABLE[err]);
 $$
 }
 
-tree_err_t tree_check(node_t const* root)
+typedef struct {
+	char* text;
+
+	size_t nlines;
+	size_t cline;
+	strv_t* lines;
+
+	tokenizer_err_t err;
+} tokenizer_t;
+
+tokenizer_err_t tokenizer__set_error(tokenizer_t* t, tokenizer_err_t e) 
 {$_
-	node_err_t node_err = node_check(root);
-	if(node_err != NODE_ERR_OK) {
-		switch(node_err) {
-		case NODE_ERR_LOOP:
-			RETURN(TREE_ERR_LOOP);
-			break;
-
-		default:
-			RETURN(TREE_ERR_NODE);
-			break;
-		}
-	}
-
-	if(root->lch == NULL) {
-		RETURN(TREE_ERR_OK);
-	}
-
-	((node_t*)root)->color = 1;
-
-	tree_err_t lerr = tree_check(root->lch);
-	if(lerr != TREE_ERR_OK) {
-		((node_t*)root)->color = 0;
-		RETURN(lerr);
-	}
-
-	tree_err_t rerr = tree_check(root->rch);
-	if(rerr != TREE_ERR_OK) {
-		((node_t*)root)->color = 0;
-		RETURN(rerr);
-	}
-	
-	((node_t*)root)->color = 0;
-
-	RETURN(TREE_ERR_OK);
+	tokenizer_err_assert(e);
+	RETURN(t->err = e);
+$$
 }
 
-void tree__dump_body(node_t const* root) {
-	if(root != NULL) {
-		node_dump(root);
-		if(((node_t*)root)->color == 1) {
-			dump("cycle found\n");
-		}
-		else {
-			((node_t*)root)->color = 1;
-			tree__dump_body(root->lch);
-			tree__dump_body(root->rch);
-			((node_t*)root)->color = 0;
-		}
+tokenizer_err_t const tokenizer_check(tokenizer_t* t) 
+{$_
+	if(t == NULL) {
+		RETURN(tokenizer__set_error(t, TOKENIZER_ERR_NULL));
+	}
+	if(t->text == NULL || t->lines == NULL || t->cline > t->nlines) {
+		RETURN(tokenizer__set_error(t, TOKENIZER_ERR_STATE));
 	}
 
+	for(size_t i = 0; i < t->nlines; ++i) {
+		if(!strv_ok(t->lines + i)) {
+			RETURN(tokenizer__set_error(t, TOKENIZER_ERR_STATE));
+		}
+	}
+	RETURN(TOKENIZER_ERR_OK);
+$$
 }
 
-void tree__dump(node_t const* root, char const* funcname, char const* filename,
-				size_t nline)
+int const tokenizer_ok(tokenizer_t* t) 
 {$_
-	tree_err_t err = tree_check(root);
-	dump("tree dump from %s (%s %i), reason %i (%s) {\n",
-		 funcname, filename, nline, err, tree_errstr(err));
+	RETURN(tokenizer_check(t) == TOKENIZER_ERR_OK);
+$$
+}
 
-	DUMP_DEPTH += 1;
-	tree__dump_body(root);
-	DUMP_DEPTH -= 1;
+void tokenizer__dump(tokenizer_t* t, char const* funcname, char const* filename,
+					 size_t nline)
+{$_
+	tokenizer_err_t err = tokenizer_check(t);
+	dump("tokenizer_t [%p] dump from %s (%s %zu), reason %i (%s) = {\n",
+		 t, funcname, filename, nline, err, tokenizer_errstr(err));
 
+	if(t != NULL) {
+		dump("\ttext [%p] = \"%s\"\n", t->text, t->text);
+		dump("\tnlines = %zu\n", t->nlines);
+		dump("\tcline = %zu\n", t->cline);
+
+		dump("\tlines [%p] = {\n", t->lines);
+
+		for(size_t i = 0; i < t->nlines; ++i) {
+			dump("\t\t%c [%zu] = \n", i < t->cline ? '*' : ' ', i);
+
+			DUMP_DEPTH += 2;
+			strv_dump(t->lines + i);
+			DUMP_DEPTH -= 2;
+		}
+
+		dump("\t}\n");
+		dump("\terr = %i (%s)\n", t->err, 
+			 tokenizer_err_ok(t->err) ? tokenizer_errstr(t->err) : "INVALID");
+	}
 	dump("}\n");
 $$
 }
 
-#define tree_dump(root) \
-	tree__dump(root, __func__, __FILE__, __LINE__)
+#define tokenizer_dump(t) \
+	tokenizer__dump(t, __func__, __FILE__, __LINE__)
 
-void tree__assert(node_t const* root, char const* funcname, char const* filename, 
-				  size_t nline)
+void tokenizer__assert(tokenizer_t* t, char const* funcname, char const* filename,
+					   size_t nline)
 {$_
-	if(tree_check(root) != TREE_ERR_OK) {
-		tree__dump(root, funcname, filename, nline);
-		ASSERT(0);
+	if(!tokenizer_ok(t)) {
+		tokenizer__dump(t, funcname, filename, nline);
+		ASSERT_(!"invalid tokenizer", funcname, filename, nline);
 	}
 $$
 }
 
-#define tree_assert(root) \
-	tree__assert(root, __func__, __FILE__, __LINE__)
+#define tokenizer_assert(t) \
+	tokenizer__assert(t, __func__, __FILE__, __LINE__)
 
-void tree__traversal(node_t* node)
+tokenizer_err_t tokenizer_init(tokenizer_t* t, char const* fname) 
 {$_
-	if(node->lch == NULL) {
-		printf("Is it %s?\n", node->data);
-		fflush(stdout);
+	ASSERT(t != NULL);
+	ASSERT(fname != NULL);
 
-		int answer = yes_or_no();
+	RF_err_t rt_err = RF_OK;
+	size_t text_size = 0;
+	t->text = read_text2(fname, &text_size, &rt_err);
 
-		if(answer == 0) {
-			node_t* node_answ = node_read_answer();
-			node_t* node_question = node_read_question(NULL, NULL);
+	switch(rt_err) {
+	case RF_MEMORY:
+		RETURN(tokenizer__set_error(t, TOKENIZER_ERR_MEM));
+		break;
 
-			node_question->lch = node_question;
-			node_question->rch = node_answ;
+	case RF_STDIO:
+		RETURN(tokenizer__set_error(t, TOKENIZER_ERR_STDIO));
+		break;
 
-			node_swap(node_question, node);
+	case RF_NOTFOUND:
+		RETURN(tokenizer__set_error(t, TOKENIZER_ERR_NF));
+		break;
+
+	default:
+		break;
+	}
+
+	t->lines = get_text_lines(t->text, text_size, '\n', &t->nlines);
+	if(t->lines == NULL) {
+		free(t->text);
+		RETURN(tokenizer__set_error(t, TOKENIZER_ERR_MEM));
+	}
+
+	t->cline = 0;
+	t->err = TOKENIZER_ERR_OK;
+
+	tokenizer_assert(t);
+
+	RETURN(TOKENIZER_ERR_OK);
+$$
+}
+
+void tokenizer_free(tokenizer_t* t) 
+{$_
+	tokenizer_assert(t);
+
+	free(t->lines);
+	free(t->text);
+$$
+}
+
+tok_t tokenizer__mktok(tok_type_t type, strv_t data) 
+{$_
+	strv_assert(&data);
+
+	tok_t t = { type, data };
+	RETURN(t);
+$$
+}
+
+tok_t tokenizer__mkstr(tokenizer_t* t) 
+{$_
+	tokenizer_assert(t);
+
+	char const* pos = memchr(t->lines[t->cline].pfirst + 1, '\"', // TODO
+							 strv_len(&t->lines[t->cline]) - 1);
+
+	if(pos == NULL) {
+		tokenizer__set_error(t, TOKENIZER_ERR_EOSTR);
+		RETURN(tokenizer__mktok(TOK_UNKNOWN, strv_make("")));
+	}
+
+	tok_t tok = tokenizer__mktok(TOK_STRING, 
+								 strv_init(t->lines[t->cline].pfirst + 1, pos)); // TODO
+
+	t->lines[t->cline].pfirst = pos + 1;
+
+	tokenizer_assert(t);
+
+	RETURN(tok);
+$$
+}
+
+tok_t tokenizer_ntok(tokenizer_t* t) 
+{$_
+	tokenizer_assert(t);
+
+	while(t->cline < t->nlines) {
+		strv_chompf(t->lines + t->cline);
+		if(!strv_empty(t->lines + t->cline)) {
+			break;
 		}
-		else {
-			printf("That\'s cool!\n");
-			fflush(stdout);
+		++t->cline;
+	}
+
+	if(t->cline == t->nlines) {
+		tokenizer_assert(t);
+		RETURN(tokenizer__mktok(TOK_EOF, strv_make("")));
+	}
+
+	switch(strv_front(&t->lines[t->cline])) {
+	case '[':
+		++(t->lines[t->cline].pfirst); // TODO
+		tokenizer_assert(t);
+		RETURN(tokenizer__mktok(TOK_OPENBR, strv_make("")));
+		break;
+
+	case ']':
+		++(t->lines[t->cline].pfirst); // TODO
+		tokenizer_assert(t);
+		RETURN(tokenizer__mktok(TOK_CLOSEBR, strv_make("")));
+		break;
+
+	case '\"':
+		tokenizer_assert(t);
+		RETURN(tokenizer__mkstr(t));
+		break;
+
+	default:
+		tokenizer_assert(t);
+		RETURN(tokenizer__mktok(TOK_UNKNOWN, strv_make("")));
+		break;
+	}
+$$
+}
+
+node_t* tree__read(tokenizer_t* tokenizer)
+{$_
+	tokenizer_assert(tokenizer);
+
+	node_t* node = (node_t*)calloc(sizeof(node_t), 1);
+	if(node == NULL) {
+		RETURN(NULL);
+	}
+
+	for(tok_t t = tokenizer_ntok(tokenizer); t.type != TOK_CLOSEBR;
+		t = tokenizer_ntok(tokenizer)) 
+	{
+		node_t* chnode = NULL;
+
+		switch(t.type) {
+		case TOK_OPENBR:
+			chnode = tree__read(tokenizer);
+			if(chnode == NULL) {
+				free(node);
+				RETURN(NULL);
+			}
+
+			if(node->lch == NULL) { node->lch = chnode; }
+			else {node->rch = chnode; }
+			break;
+
+		case TOK_STRING:
+			node->data = strv_tostr(&t.data);
+			break;
+
+		default:
+			fprintf(stderr, "SHIIIT!!!! %i\n", t.type);
+			free(node);
+			RETURN(NULL);
+			break;
 		}
 	}
-	else {
-		printf("%s\n", node->data);
-		fflush(stdout);
-
-		int answer = yes_or_no();
-		
-		if(answer == 0) {
-			tree__traversal(node->lch);
-		}
-		else {
-			tree__traversal(node->rch);
-		}
+	if(node_check(node) != NODE_ERR_OK) {
+		free(node);
+		RETURN(NULL);
 	}
+	RETURN(node);
 $$
 }
 
-void tree_traversal(node_t* root)
+node_t* tree_read(char const* fname)
 {$_
-	tree_assert(root);
-	tree__traversal(root);
-	tree_assert(root);
-$$
-}
-
-void tree__free(node_t* root)
-{$_
-	if(root != NULL) {
-		tree__free(root->lch);
-		tree__free(root->rch);
-		node_free(root);
+	tokenizer_t t;
+	tokenizer_err_t err = tokenizer_init(&t, fname);
+	if(err != TOKENIZER_ERR_OK) {
+		RETURN(NULL);
 	}
+
+	tokenizer_ntok(&t);
+
+	node_t* root = tree__read(&t);
+	fprintf(stderr, "!!!!\n");
+	tokenizer_free(&t);
+
+	RETURN(root);
 $$
 }
 
-void tree_free(node_t* root)
-{$_
-	tree_assert(root);
-	tree__free(root);
-$$
+void signal_sigsegv(int x) {
+	(void)x;
+
+	stacktrace_print(stderr);
+	abort();
 }
 
-int const tree__write(node_t const* root) 
+int main() 
 {$_
+	signal(SIGSEGV, signal_sigsegv);
+
+	node_t* root = tree_read("database.txt");
 	if(root == NULL) {
-		size_t zero = 0;
-		RETURN( binbuf_write_value(size_t, zero) == BINBUF_ERR_OK );
-	}
-	else {
-		size_t len = strlen(root->data);
-
-		if(binbuf_write_value(size_t, len) == BINBUF_ERR_OK &&
-		   binbuf_write(root->data, len) == BINBUF_ERR_OK) {
-			RETURN( tree__write(root->lch) && tree__write(root->rch) );
-		}
-		else {
-			RETURN(0);
-		}
-	}
-$$
-}
-
-int const tree_write(node_t const* root, FILE* stream)
-{$_
-	tree_assert(root);
-	stream_assert(stream);
-
-	if(tree__write(root) && binbuf_flushh(stream) == BINBUF_ERR_OK) {
-		binbuf_free();
-		RETURN(1);
+		RETURN(0);
 	}
 
-	RETURN(0);
-$$
-}
-
-int main() {
-	node_t* root = node_make("dog", NULL, NULL);
 	while(1) {
 		printf("Do you want to play?\n");
 		int answer = yes_or_no();
@@ -224,5 +372,8 @@ int main() {
 		tree_traversal(root);
 	}
 
+	tree_write_file(root, "database.txt");
+
 	tree_free(root);
+$$
 }
