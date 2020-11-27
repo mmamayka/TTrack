@@ -1,0 +1,108 @@
+token_t [0x7fffb66529e0] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 0 (left brace)
+}
+LBRACE
+token_t [0x7fffb6652990] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 0 (left brace)
+}
+LBRACE
+token_t [0x7fffb6652940] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 0 (left brace)
+}
+LBRACE
+token_t [0x7fffb66528f0] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 0 (left brace)
+}
+LBRACE
+token_t [0x7fffb66528a0] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 2 (variable name)
+	name = x
+}
+token_t [0x7fffb66528a0] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 1 (right brace)
+}
+RBRACE
+token_t [0x7fffb66528f0] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 6 (mul)
+}
+token_t [0x7fffb66528f0] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 0 (left brace)
+}
+LBRACE
+token_t [0x7fffb66528a0] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 3 (number)
+	value = 5.000000
+}
+token_t [0x7fffb66528a0] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 1 (right brace)
+}
+RBRACE
+token_t [0x7fffb66528f0] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 1 (right brace)
+}
+RBRACE
+token_t [0x7fffb6652940] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 4 (add)
+}
+token_t [0x7fffb6652940] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 0 (left brace)
+}
+LBRACE
+token_t [0x7fffb66528f0] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 0 (left brace)
+}
+LBRACE
+token_t [0x7fffb66528a0] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 2 (variable name)
+	name = x
+}
+token_t [0x7fffb66528a0] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 1 (right brace)
+}
+RBRACE
+token_t [0x7fffb66528f0] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 8 (pow)
+}
+token_t [0x7fffb66528f0] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 0 (left brace)
+}
+LBRACE
+token_t [0x7fffb66528a0] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 3 (number)
+	value = 2.000000
+}
+token_t [0x7fffb66528a0] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 1 (right brace)
+}
+RBRACE
+token_t [0x7fffb66528f0] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 1 (right brace)
+}
+RBRACE
+token_t [0x7fffb6652940] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 1 (right brace)
+}
+RBRACE
+token_t [0x7fffb6652990] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 4 (add)
+}
+token_t [0x7fffb6652990] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 0 (left brace)
+}
+LBRACE
+token_t [0x7fffb6652940] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 3 (number)
+	value = 2.000000
+}
+token_t [0x7fffb6652940] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 1 (right brace)
+}
+RBRACE
+token_t [0x7fffb6652990] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 1 (right brace)
+}
+RBRACE
+token_t [0x7fffb66529e0] dump from tree__parse (src/main.c 63), reason 0 (ok) = {
+	type = 9 (end of file)
+}
+Invalid tree (unexected end of file)

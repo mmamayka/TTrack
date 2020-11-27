@@ -1,0 +1,19 @@
+digraph G {
+	0 [label="add"];
+	0 -> 1 [label="L"];
+	1 [label="add"];
+	1 -> 2 [label="L"];
+	2 [label="mul"];
+	2 -> 3 [label="L"];
+	3 [label="x"];
+	2 -> 5 [label="R"];
+	5 [label="5.000000"];
+	1 -> 8 [label="R"];
+	8 [label="pow"];
+	8 -> 9 [label="L"];
+	9 [label="x"];
+	8 -> 11 [label="R"];
+	11 [label="2.000000"];
+	0 -> 15 [label="R"];
+	15 [label="2.000000"];
+}
